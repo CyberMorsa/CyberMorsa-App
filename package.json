@@ -85,9 +85,12 @@
     "postgres": "latest",
     "sql.js": "latest",
     "sqlite3": "latest",
+    "@auth/core": "latest",
+    "nodemailer": "latest",
     "drizzle-orm": "latest",
     "drizzle-kit": "latest",
     "dotenv": "latest",
+    "next-auth": "latest",
     "jose": "latest"
   },
   "devDependencies": {

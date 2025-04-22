@@ -2,12 +2,12 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { signOut, useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { Shield, Menu, X } from "lucide-react"
+import { Shield, Menu, X, LogOut, Loader2 } from "lucide-react"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
-import { LogoutButton } from "@/components/logout-button"
 
 const navItems = [
   { name: "Dashboard", href: "/dashboard" },
@@ -21,6 +21,13 @@ const navItems = [
 export function Navbar() {
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [loggingOut, setLoggingOut] = useState(false)
+  const { data: session } = useSession()
+
+  const handleLogout = async () => {
+    setLoggingOut(true)
+    await signOut({ redirect: true, callbackUrl: "/" })
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -49,8 +56,20 @@ export function Navbar() {
         </nav>
 
         <div className="flex items-center gap-2">
+          {session?.user?.name && (
+            <span className="text-sm text-muted-foreground hidden md:inline-block mr-2">{session.user.name}</span>
+          )}
           <ThemeToggle />
-          <LogoutButton />
+          <Button variant="ghost" size="sm" onClick={handleLogout} disabled={loggingOut}>
+            {loggingOut ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <>
+                <LogOut className="h-4 w-4 mr-2" />
+                <span className="hidden md:inline">Cerrar sesión</span>
+              </>
+            )}
+          </Button>
 
           {/* Mobile menu button */}
           <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>

@@ -1,15 +1,20 @@
 import type React from "react"
+import { redirect } from "next/navigation"
+import { getServerSession } from "next-auth/next"
+import { authOptions } from "@/lib/auth"
 import { Navbar } from "@/components/navbar"
 import { Toaster } from "@/components/ui/toaster"
-import { requireAuth } from "@/lib/auth"
 
 export default async function ProtectedLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  // Verificar autenticación
-  await requireAuth()
+  const session = await getServerSession(authOptions)
+
+  if (!session) {
+    redirect("/login")
+  }
 
   return (
     <div className="min-h-screen bg-background">

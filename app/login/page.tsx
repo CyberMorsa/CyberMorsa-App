@@ -4,6 +4,7 @@ import type React from "react"
 
 import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+import { signIn } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -19,7 +20,7 @@ export default function LoginPage() {
   const searchParams = useSearchParams()
   const { toast } = useToast()
 
-  const redirectPath = searchParams.get("redirect") || "/dashboard"
+  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard"
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -36,27 +37,23 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      const response = await fetch("/api/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username, password }),
+      const result = await signIn("credentials", {
+        username,
+        password,
+        redirect: false,
       })
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || "Error al iniciar sesión")
+      if (result?.error) {
+        throw new Error("Credenciales inválidas")
       }
 
       toast({
         title: "Inicio de sesión exitoso",
-        description: `Bienvenido, ${data.user.username}!`,
+        description: "Bienvenido a OSINT Personal",
       })
 
-      // Redirigir al dashboard o a la página solicitada
-      router.push(redirectPath)
+      router.push(callbackUrl)
+      router.refresh()
     } catch (error) {
       toast({
         title: "Error",

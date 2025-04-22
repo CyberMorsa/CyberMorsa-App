@@ -1,80 +1,72 @@
-import { cookies } from "next/headers"
-import { redirect } from "next/navigation"
-import { jwtVerify, SignJWT } from "jose"
+import { authOptions } from "@/lib/auth"
+import { getServerSession } from "next-auth/next"
 
-// Clave secreta para firmar los tokens JWT
-const secretKey = new TextEncoder().encode(
-  process.env.JWT_SECRET || "default_secret_key_change_in_production_environment",
-)
+export async function requireAuth() {
+  const session = await getServerSession(authOptions)
 
-// Duración del token: 24 horas
-const tokenExpiration = "24h"
+  if (!session?.user) {
+    throw new Error("Unauthorized")
+  }
 
-// Interfaz para el usuario
-export interface User {
-  username: string
-  role: "admin" | "guest"
+  return {
+    username: session.user.name || "Usuario",
+    role: session.user.role || "guest",
+  }
 }
 
-// Función para verificar las credenciales
-export async function verifyCredentials(username: string, password: string): Promise<User | null> {
-  // Verificar credenciales de administrador
+export async function verifyCredentials(username: string, password: string) {
   if (username === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD) {
-    return { username, role: "admin" }
+    return {
+      id: "1",
+      username: username,
+      email: `${username}@example.com`,
+      role: "admin",
+    }
   }
 
-  // Verificar credenciales de invitado
   if (username === process.env.GUEST_USERNAME && password === process.env.GUEST_PASSWORD) {
-    return { username, role: "guest" }
+    return {
+      id: "2",
+      username: username,
+      email: `${username}@example.com`,
+      role: "guest",
+    }
   }
 
-  // Si no coincide con ninguna credencial, devolver null
   return null
 }
 
-// Función para crear un token JWT
-export async function createToken(user: User): Promise<string> {
-  return new SignJWT({ user })
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime(tokenExpiration)
-    .sign(secretKey)
+import { SignJWT, jwtVerify } from "jose"
+
+const secretKey = process.env.AUTH_SECRET || "tu_clave_secreta_aqui_minimo_32_caracteres"
+
+export async function createToken(user: { username: string; role: string }) {
+  const iat = Math.floor(Date.now() / 1000)
+  const exp = iat + 60 * 60 * 24 // 24 hours
+
+  const jwt = await new SignJWT({ id: user.id, username: user.username, role: user.role })
+    .setProtectedHeader({ alg: "HS256", typ: "JWT" })
+    .setExpirationTime(exp)
+    .setIssuedAt(iat)
+    .setNotBefore(iat)
+    .sign(new TextEncoder().encode(secretKey))
+
+  return jwt
 }
 
-// Función para verificar un token JWT
-export async function verifyToken(token: string): Promise<User | null> {
+interface UserJwtPayload {
+  id: string
+  username: string
+  role: string
+  iat: number
+  exp: number
+}
+
+export async function verifyToken(token: string) {
   try {
-    const { payload } = await jwtVerify(token, secretKey)
-    return payload.user as User
+    const { payload } = await jwtVerify(token, new TextEncoder().encode(secretKey))
+    return payload as UserJwtPayload
   } catch (error) {
     return null
   }
-}
-
-// Función para obtener el usuario actual
-export async function getCurrentUser(): Promise<User | null> {
-  const cookieStore = cookies()
-  const token = cookieStore.get("auth-token")
-
-  if (!token) {
-    return null
-  }
-
-  return verifyToken(token.value)
-}
-
-// Función para verificar la autenticación y redirigir si es necesario
-export async function requireAuth() {
-  const user = await getCurrentUser()
-
-  if (!user) {
-    redirect("/login")
-  }
-
-  return user
-}
-
-// Función para cerrar sesión
-export async function logout() {
-  cookies().delete("auth-token")
 }

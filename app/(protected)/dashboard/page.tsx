@@ -1,17 +1,18 @@
+import { getServerSession } from "next-auth/next"
+import { authOptions } from "@/lib/auth"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
 import { ArrowRight, Users, Search, Database, Calendar, Shield } from "lucide-react"
-import { requireAuth } from "@/lib/auth"
 
 export default async function Dashboard() {
-  // Verificar autenticación
-  const user = await requireAuth()
+  const session = await getServerSession(authOptions)
+  const username = session?.user?.name || "Usuario"
 
   return (
     <div className="space-y-8">
       <div className="text-center space-y-4">
-        <h1 className="text-4xl font-bold tracking-tight">Bienvenido, {user.username}</h1>
+        <h1 className="text-4xl font-bold tracking-tight">Bienvenido, {username}</h1>
         <p className="text-muted-foreground max-w-2xl mx-auto">
           Plataforma para herramientas OSINT, ciberseguridad y aplicaciones personales, todo en un solo lugar.
         </p>
