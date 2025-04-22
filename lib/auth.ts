@@ -10,37 +10,74 @@ const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || "default_s
 // JWT expiration time (24 hours)
 const EXPIRES_IN = "24h"
 
+// Función de depuración para variables de entorno
+function getEnvDebugInfo() {
+  return {
+    adminUsername: process.env.ADMIN_USERNAME || "no configurado",
+    adminPasswordSet: !!process.env.ADMIN_PASSWORD,
+    guestUsername: process.env.GUEST_USERNAME || "no configurado",
+    guestPasswordSet: !!process.env.GUEST_PASSWORD,
+    jwtSecretSet: !!process.env.JWT_SECRET,
+  }
+}
+
 // Authenticate user
 export async function authenticate(username: string, password: string) {
-  // Check admin credentials
-  const isAdmin = username === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD
+  // Trim inputs to remove any accidental spaces
+  const trimmedUsername = username.trim()
+  const trimmedPassword = password.trim()
 
-  // Check guest credentials
-  const isGuest = username === process.env.GUEST_USERNAME && password === process.env.GUEST_PASSWORD
+  // Debug info
+  console.log("Intento de autenticación para:", trimmedUsername)
+  console.log("Estado de variables de entorno:", getEnvDebugInfo())
+
+  // Fallback to hardcoded credentials if environment variables are not set
+  const adminUsername = process.env.ADMIN_USERNAME || "admin"
+  const adminPassword = process.env.ADMIN_PASSWORD || "admin123"
+  const guestUsername = process.env.GUEST_USERNAME || "guest"
+  const guestPassword = process.env.GUEST_PASSWORD || "guest123"
+
+  // Check admin credentials - case insensitive username comparison
+  const isAdmin = trimmedUsername.toLowerCase() === adminUsername.toLowerCase() && trimmedPassword === adminPassword
+
+  // Check guest credentials - case insensitive username comparison
+  const isGuest = trimmedUsername.toLowerCase() === guestUsername.toLowerCase() && trimmedPassword === guestPassword
+
+  console.log("Resultado de autenticación:", {
+    isAdmin,
+    isGuest,
+    adminUsernameMatch: trimmedUsername.toLowerCase() === adminUsername.toLowerCase(),
+    guestUsernameMatch: trimmedUsername.toLowerCase() === guestUsername.toLowerCase(),
+  })
 
   // If credentials are valid
   if (isAdmin || isGuest) {
-    // Create JWT token
-    const token = await new SignJWT({
-      username,
-      role: isAdmin ? "admin" : "guest",
-    })
-      .setProtectedHeader({ alg: "HS256" })
-      .setIssuedAt()
-      .setExpirationTime(EXPIRES_IN)
-      .sign(JWT_SECRET)
+    try {
+      // Create JWT token
+      const token = await new SignJWT({
+        username: trimmedUsername,
+        role: isAdmin ? "admin" : "guest",
+      })
+        .setProtectedHeader({ alg: "HS256" })
+        .setIssuedAt()
+        .setExpirationTime(EXPIRES_IN)
+        .sign(JWT_SECRET)
 
-    // Set cookie
-    cookies().set({
-      name: "auth-token",
-      value: token,
-      httpOnly: true,
-      path: "/",
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 60 * 60 * 24, // 24 hours
-    })
+      // Set cookie
+      cookies().set({
+        name: "auth-token",
+        value: token,
+        httpOnly: true,
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 60 * 60 * 24, // 24 hours
+      })
 
-    return { success: true, role: isAdmin ? "admin" : "guest" }
+      return { success: true, role: isAdmin ? "admin" : "guest" }
+    } catch (error) {
+      console.error("Error al crear o establecer el token:", error)
+      return { success: false, error: "Error interno al procesar la autenticación" }
+    }
   }
 
   return { success: false }
@@ -58,6 +95,9 @@ export async function verifyAuth() {
     const verified = await jwtVerify(token, JWT_SECRET)
     return verified.payload as { username: string; role: string }
   } catch (error) {
+    console.error("Error al verificar el token:", error)
+    // Delete invalid token
+    cookies().delete("auth-token")
     return null
   }
 }
