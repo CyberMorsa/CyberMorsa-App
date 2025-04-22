@@ -1,25 +1,24 @@
-import { NextResponse } from "next/server"
-import type { NextRequest } from "next/server"
+import { type NextRequest, NextResponse } from "next/server"
+import { verifyAuth } from "./lib/auth"
 
-export function middleware(request: NextRequest) {
-  // Verificar si estamos en desarrollo y si las variables de entorno están configuradas
-  if (process.env.NODE_ENV === "development") {
-    const missingEnvVars = []
+export async function middleware(request: NextRequest) {
+  // Exclude login page and API routes from middleware
+  if (request.nextUrl.pathname.startsWith("/login") || request.nextUrl.pathname.startsWith("/api/")) {
+    return NextResponse.next()
+  }
 
-    if (!process.env.ADMIN_USERNAME) missingEnvVars.push("ADMIN_USERNAME")
-    if (!process.env.ADMIN_PASSWORD) missingEnvVars.push("ADMIN_PASSWORD")
-    if (!process.env.JWT_SECRET) missingEnvVars.push("JWT_SECRET")
+  // Check if user is authenticated
+  const user = await verifyAuth(request)
 
-    // Si faltan variables de entorno críticas, registrar una advertencia
-    if (missingEnvVars.length > 0) {
-      console.warn(`⚠️ ADVERTENCIA: Faltan las siguientes variables de entorno: ${missingEnvVars.join(", ")}`)
-      console.warn("La autenticación podría no funcionar correctamente.")
-    }
+  // If not authenticated, redirect to login
+  if (!user) {
+    const loginUrl = new URL("/login", request.url)
+    return NextResponse.redirect(loginUrl)
   }
 
   return NextResponse.next()
 }
 
 export const config = {
-  matcher: ["/login", "/dashboard/:path*"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 }

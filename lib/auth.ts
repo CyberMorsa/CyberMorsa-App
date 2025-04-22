@@ -1,8 +1,6 @@
-"\"use server"
-
-import { cookies } from "next/headers"
-import { redirect } from "next/navigation"
-import { SignJWT, jwtVerify } from "jose"
+import { jwtVerify, SignJWT } from "jose"
+import type { NextApiRequest, NextApiResponse } from "next"
+import type { NextRequest, NextResponse } from "next/server"
 import type { NextAuthOptions } from "next-auth"
 
 // Secret key for JWT signing
@@ -12,7 +10,7 @@ const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || "default_s
 const EXPIRES_IN = "24h"
 
 // Función de depuración para variables de entorno
-function getEnvDebugInfo() {
+export function getEnvDebugInfo() {
   return {
     adminUsername: process.env.ADMIN_USERNAME || "no configurado",
     adminPasswordSet: !!process.env.ADMIN_PASSWORD,
@@ -22,7 +20,7 @@ function getEnvDebugInfo() {
   }
 }
 
-// Authenticate user
+// Authenticate user - compatible with API routes
 export async function authenticate(username: string, password: string) {
   // Trim inputs to remove any accidental spaces
   const trimmedUsername = username.trim()
@@ -64,19 +62,13 @@ export async function authenticate(username: string, password: string) {
         .setExpirationTime(EXPIRES_IN)
         .sign(JWT_SECRET)
 
-      // Set cookie
-      cookies().set({
-        name: "auth-token",
-        value: token,
-        httpOnly: true,
-        path: "/",
-        secure: process.env.NODE_ENV === "production",
-        maxAge: 60 * 60 * 24, // 24 hours
-      })
-
-      return { success: true, role: isAdmin ? "admin" : "guest" }
+      return {
+        success: true,
+        role: isAdmin ? "admin" : "guest",
+        token,
+      }
     } catch (error) {
-      console.error("Error al crear o establecer el token:", error)
+      console.error("Error al crear el token:", error)
       return { success: false, error: "Error interno al procesar la autenticación" }
     }
   }
@@ -84,10 +76,8 @@ export async function authenticate(username: string, password: string) {
   return { success: false }
 }
 
-// Verify authentication
-export async function verifyAuth() {
-  const token = cookies().get("auth-token")?.value
-
+// Verify authentication from token
+export async function verifyToken(token: string) {
   if (!token) {
     return null
   }
@@ -97,30 +87,73 @@ export async function verifyAuth() {
     return verified.payload as { username: string; role: string }
   } catch (error) {
     console.error("Error al verificar el token:", error)
-    // Delete invalid token
-    cookies().delete("auth-token")
     return null
   }
 }
 
-// Logout
-export async function logout() {
-  cookies().delete("auth-token")
-}
-
-// Middleware to protect routes
-export async function requireAuth() {
-  const user = await verifyAuth()
-
-  if (!user) {
-    redirect("/login")
+// Verify authentication from request
+export async function verifyAuth(req: NextApiRequest | NextRequest) {
+  // For API routes
+  if ("cookies" in req && typeof req.cookies === "object") {
+    const token = req.cookies["auth-token"]
+    return token ? verifyToken(token) : null
   }
 
-  return user
+  // For middleware
+  if ("cookies" in req && typeof req.cookies === "function") {
+    const token = req.cookies().get("auth-token")?.value
+    return token ? verifyToken(token) : null
+  }
+
+  return null
+}
+
+// Set auth cookie in response
+export function setAuthCookie(res: NextApiResponse | NextResponse, token: string) {
+  // For API routes
+  if ("setHeader" in res) {
+    res.setHeader(
+      "Set-Cookie",
+      `auth-token=${token}; Path=/; HttpOnly; ${process.env.NODE_ENV === "production" ? "Secure; " : ""}Max-Age=${60 * 60 * 24}`,
+    )
+    return res
+  }
+
+  // For middleware
+  if ("cookies" in res && typeof res.cookies === "object") {
+    res.cookies.set({
+      name: "auth-token",
+      value: token,
+      httpOnly: true,
+      path: "/",
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 60 * 60 * 24, // 24 hours
+    })
+    return res
+  }
+
+  return res
+}
+
+// Clear auth cookie in response
+export function clearAuthCookie(res: NextApiResponse | NextResponse) {
+  // For API routes
+  if ("setHeader" in res) {
+    res.setHeader("Set-Cookie", "auth-token=; Path=/; HttpOnly; Max-Age=0")
+    return res
+  }
+
+  // For middleware
+  if ("cookies" in res && typeof res.cookies === "object") {
+    res.cookies.delete("auth-token")
+    return res
+  }
+
+  return res
 }
 
 export const authOptions: NextAuthOptions = {
-  // Placeholder to satisfy the type checker.  This file doesn't actually use next-auth.
+  // Placeholder to satisfy the type checker. This file doesn't actually use next-auth.
   // The authentication is handled manually with JWTs.
   providers: [],
 }
