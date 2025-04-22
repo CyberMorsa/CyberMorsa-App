@@ -24,10 +24,10 @@ export function SumCalculator() {
     }
   }, [])
 
-  // Calcular el total cuando cambian los items
+  // Calcular el total cuando cambian los valores
   useEffect(() => {
-    const newTotal = items.reduce((sum, item) => sum + item.numValue, 0)
-    setTotal(newTotal)
+    const sum = items.reduce((acc, item) => acc + item.numValue, 0)
+    setTotal(sum)
   }, [items])
 
   // Guardar datos cuando cambian
@@ -53,7 +53,7 @@ export function SumCalculator() {
 
   const updateItemValue = (itemId: string, value: string) => {
     // Permitir solo números y punto decimal
-    if (value === "" || /^-?\d*\.?\d*$/.test(value)) {
+    if (value === "" || /^\d*\.?\d*$/.test(value)) {
       const numValue = value === "" ? 0 : Number.parseFloat(value) || 0
       setItems(items.map((item) => (item.id === itemId ? { ...item, value, numValue } : item)))
     }
@@ -77,11 +77,13 @@ export function SumCalculator() {
         />
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="bg-gray-700 p-4 rounded-lg flex items-center justify-between">
-          <span className="text-lg font-medium text-white">Total:</span>
-          <span className="text-2xl font-bold text-white">
-            {total.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </span>
+        <div className="bg-gray-700 p-4 rounded-lg">
+          <div className="flex items-center justify-between">
+            <span className="text-lg font-medium text-white">Total:</span>
+            <span className="text-2xl font-bold text-white">
+              {total.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
+          </div>
         </div>
 
         <div className="space-y-2">

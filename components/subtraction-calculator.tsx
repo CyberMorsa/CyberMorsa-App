@@ -14,6 +14,7 @@ export function SubtractionCalculator() {
     { id: "item-1", value: "", numValue: 0 },
   ])
   const [remainingTotal, setRemainingTotal] = useState(0)
+  const [steps, setSteps] = useState<{ total: number; subtracted: number; remaining: number }[]>([])
 
   // Cargar datos guardados al montar el componente
   useEffect(() => {
@@ -27,10 +28,25 @@ export function SubtractionCalculator() {
     }
   }, [])
 
-  // Calcular el total restante cuando cambian los valores
+  // Calcular el total restante y los pasos cuando cambian los valores
   useEffect(() => {
-    const totalSubtracted = items.reduce((sum, item) => sum + item.numValue, 0)
-    setRemainingTotal(initialNumValue - totalSubtracted)
+    let currentTotal = initialNumValue
+    const newSteps: { total: number; subtracted: number; remaining: number }[] = []
+
+    items.forEach((item) => {
+      if (item.numValue > 0) {
+        const remaining = currentTotal - item.numValue
+        newSteps.push({
+          total: currentTotal,
+          subtracted: item.numValue,
+          remaining: remaining,
+        })
+        currentTotal = remaining
+      }
+    })
+
+    setSteps(newSteps)
+    setRemainingTotal(currentTotal)
   }, [initialNumValue, items])
 
   // Guardar datos cuando cambian
@@ -108,6 +124,28 @@ export function SubtractionCalculator() {
             </span>
           </div>
         </div>
+
+        {steps.length > 0 && (
+          <div className="bg-gray-700 p-4 rounded-lg">
+            <h3 className="text-lg font-medium text-white mb-2">Pasos de cálculo:</h3>
+            <div className="space-y-2">
+              {steps.map((step, index) => (
+                <div key={index} className="flex items-center justify-between text-sm">
+                  <span className="text-gray-300">
+                    {step.total.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                  <span className="text-red-400">
+                    - {step.subtracted.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                  <span className="text-gray-300">=</span>
+                  <span className="text-green-400">
+                    {step.remaining.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="space-y-2">
           {items.map((item, index) => (

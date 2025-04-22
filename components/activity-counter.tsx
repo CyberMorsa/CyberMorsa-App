@@ -2,7 +2,10 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
 import { Plus, Minus, RotateCcw } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 
 interface ActivityCounterProps {
   title: string
@@ -20,69 +23,89 @@ export function ActivityCounter({
   allowNegative = false,
 }: ActivityCounterProps) {
   const [count, setCount] = useState(initialCount)
+  const [localTitle, setLocalTitle] = useState(title)
+  const [localDescription, setLocalDescription] = useState(description)
 
-  // Load count from localStorage on mount
+  // Cargar el contador desde localStorage al montar el componente
   useEffect(() => {
-    const savedCount = localStorage.getItem(`activity-counter-${id}`)
-    if (savedCount) {
-      setCount(Number.parseInt(savedCount, 10))
+    const savedData = localStorage.getItem(`activity-counter-${id}`)
+    if (savedData) {
+      const data = JSON.parse(savedData)
+      setCount(data.count)
+      setLocalTitle(data.title)
+      setLocalDescription(data.description)
     }
   }, [id])
 
-  // Save count to localStorage when it changes
+  // Guardar el contador en localStorage cuando cambia
   useEffect(() => {
-    localStorage.setItem(`activity-counter-${id}`, count.toString())
-  }, [count, id])
+    localStorage.setItem(
+      `activity-counter-${id}`,
+      JSON.stringify({
+        count,
+        title: localTitle,
+        description: localDescription,
+      }),
+    )
+  }, [count, localTitle, localDescription, id])
 
-  const increment = () => setCount((prev) => prev + 1)
-
+  const increment = () => setCount(count + 1)
   const decrement = () => {
-    if (allowNegative || count > 0) {
-      setCount((prev) => prev - 1)
+    if (count > 0 || allowNegative) {
+      setCount(count - 1)
     }
   }
-
-  const reset = () => {
-    if (confirm("¿Estás seguro de que quieres reiniciar el contador a cero?")) {
-      setCount(0)
-    }
-  }
+  const reset = () => setCount(0)
 
   return (
-    <div className="space-y-4">
-      <div className="text-center">
-        <h3 className="text-lg font-medium">{title}</h3>
-        <p className="text-sm text-gray-400">{description}</p>
-      </div>
+    <Card className="bg-gray-800 border-gray-700">
+      <CardContent className="p-6">
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Input
+              value={localTitle}
+              onChange={(e) => setLocalTitle(e.target.value)}
+              className="text-xl font-bold bg-gray-700 border-gray-600 text-white"
+              placeholder="Título del contador"
+            />
+            <Textarea
+              value={localDescription}
+              onChange={(e) => setLocalDescription(e.target.value)}
+              className="bg-gray-700 border-gray-600 text-gray-300 resize-none"
+              placeholder="Descripción (opcional)"
+              rows={2}
+            />
+          </div>
 
-      <div className="flex items-center justify-center">
-        <div className="text-5xl font-bold tabular-nums bg-gray-700 px-6 py-3 rounded-lg">{count}</div>
-      </div>
-
-      <div className="flex items-center justify-center gap-2">
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={decrement}
-          disabled={!allowNegative && count === 0}
-          className="border-gray-700 text-white hover:bg-gray-700"
-        >
-          <Minus className="h-4 w-4" />
-        </Button>
-
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={increment}
-          className="border-gray-700 text-white hover:bg-gray-700"
-        >
-          <Plus className="h-4 w-4" />
-        </Button>
-
-        <Button variant="outline" size="icon" onClick={reset} className="border-gray-700 text-white hover:bg-gray-700">
-          <RotateCcw className="h-4 w-4" />
-        </Button>
-      </div>
-    </div>
+          <div className="flex flex-col items-center justify-center py-4">
+            <div className="text-6xl font-bold text-white mb-4">{count}</div>
+            <div className="flex gap-2">
+              <Button
+                onClick={decrement}
+                size="lg"
+                className="bg-red-600 hover:bg-red-700 text-white"
+                disabled={!allowNegative && count <= 0}
+              >
+                <Minus className="mr-1 h-5 w-5" />
+                <span className="text-lg">Restar</span>
+              </Button>
+              <Button onClick={increment} size="lg" className="bg-green-600 hover:bg-green-700 text-white">
+                <Plus className="mr-1 h-5 w-5" />
+                <span className="text-lg">Sumar</span>
+              </Button>
+              <Button
+                onClick={reset}
+                size="lg"
+                variant="outline"
+                className="border-gray-600 text-white hover:bg-gray-700"
+              >
+                <RotateCcw className="mr-1 h-5 w-5" />
+                <span className="text-lg">Reiniciar</span>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   )
 }

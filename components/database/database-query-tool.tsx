@@ -1,13 +1,17 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Loader2, Play, Save, Download, Copy, Trash } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
-export function DatabaseQueryTool() {
-  const [query, setQuery] = useState("")
+interface DatabaseQueryToolProps {
+  initialQuery?: string
+}
+
+export function DatabaseQueryTool({ initialQuery = "" }: DatabaseQueryToolProps) {
+  const [query, setQuery] = useState(initialQuery)
   const [executing, setExecuting] = useState(false)
   const [results, setResults] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
@@ -15,6 +19,26 @@ export function DatabaseQueryTool() {
     { name: "Todos los emails", query: "SELECT * FROM emails LIMIT 10" },
     { name: "Dominios comprometidos", query: "SELECT * FROM domains WHERE in_breach = true" },
   ])
+
+  // Actualizar la consulta cuando cambia initialQuery
+  useEffect(() => {
+    if (initialQuery) {
+      setQuery(initialQuery)
+    }
+  }, [initialQuery])
+
+  // Cargar consultas guardadas
+  useEffect(() => {
+    const savedQueriesData = localStorage.getItem("saved-queries")
+    if (savedQueriesData) {
+      setSavedQueries(JSON.parse(savedQueriesData))
+    }
+  }, [])
+
+  // Guardar consultas cuando cambian
+  useEffect(() => {
+    localStorage.setItem("saved-queries", JSON.stringify(savedQueries))
+  }, [savedQueries])
 
   async function executeQuery() {
     if (!query.trim()) return
@@ -34,7 +58,7 @@ export function DatabaseQueryTool() {
         // Simular resultados de SELECT
         if (queryLower.includes("emails")) {
           setResults({
-            columns: ["id", "email", "domain", "reputation_score", "in_breach", "created_at"],
+            columns: ["id", "email", "domain", "reputation_score", "in_breach", "has_social_links", "created_at"],
             rows: [
               {
                 id: 1,
@@ -42,6 +66,7 @@ export function DatabaseQueryTool() {
                 domain: "example.com",
                 reputation_score: 0.85,
                 in_breach: false,
+                has_social_links: true,
                 created_at: "2023-01-15",
               },
               {
@@ -50,6 +75,7 @@ export function DatabaseQueryTool() {
                 domain: "test.org",
                 reputation_score: 0.72,
                 in_breach: true,
+                has_social_links: false,
                 created_at: "2023-02-20",
               },
               {
@@ -58,13 +84,14 @@ export function DatabaseQueryTool() {
                 domain: "company.net",
                 reputation_score: 0.91,
                 in_breach: false,
+                has_social_links: true,
                 created_at: "2023-03-05",
               },
             ],
           })
         } else if (queryLower.includes("domains")) {
           setResults({
-            columns: ["id", "domain", "subdomain_count", "first_seen", "technologies"],
+            columns: ["id", "domain", "subdomain_count", "first_seen", "technologies", "open_ports"],
             rows: [
               {
                 id: 1,
@@ -72,6 +99,7 @@ export function DatabaseQueryTool() {
                 subdomain_count: 5,
                 first_seen: "2022-11-10",
                 technologies: ["PHP", "MySQL", "Apache"],
+                open_ports: [80, 443, 22],
               },
               {
                 id: 2,
@@ -79,6 +107,7 @@ export function DatabaseQueryTool() {
                 subdomain_count: 3,
                 first_seen: "2023-01-22",
                 technologies: ["Node.js", "MongoDB"],
+                open_ports: [80, 443],
               },
               {
                 id: 3,
@@ -86,6 +115,124 @@ export function DatabaseQueryTool() {
                 subdomain_count: 12,
                 first_seen: "2022-08-15",
                 technologies: ["ASP.NET", "SQL Server", "IIS"],
+                open_ports: [80, 443, 3389],
+              },
+            ],
+          })
+        } else if (queryLower.includes("ips")) {
+          setResults({
+            columns: ["id", "ip_address", "asn", "isp", "country", "is_abusive", "last_reported"],
+            rows: [
+              {
+                id: 1,
+                ip_address: "192.168.1.1",
+                asn: "AS15169",
+                isp: "Google LLC",
+                country: "US",
+                is_abusive: false,
+                last_reported: null,
+              },
+              {
+                id: 2,
+                ip_address: "10.0.0.1",
+                asn: "AS16509",
+                isp: "Amazon.com, Inc.",
+                country: "US",
+                is_abusive: false,
+                last_reported: null,
+              },
+              {
+                id: 3,
+                ip_address: "172.16.0.1",
+                asn: "AS8075",
+                isp: "Microsoft Corporation",
+                country: "US",
+                is_abusive: true,
+                last_reported: "2023-01-15",
+              },
+            ],
+          })
+        } else if (queryLower.includes("usernames")) {
+          setResults({
+            columns: ["id", "username", "platform", "found", "last_checked"],
+            rows: [
+              {
+                id: 1,
+                username: "johndoe",
+                platform: "Twitter",
+                found: true,
+                last_checked: "2023-03-10",
+              },
+              {
+                id: 2,
+                username: "johndoe",
+                platform: "Instagram",
+                found: true,
+                last_checked: "2023-03-10",
+              },
+              {
+                id: 3,
+                username: "johndoe",
+                platform: "LinkedIn",
+                found: false,
+                last_checked: "2023-03-10",
+              },
+            ],
+          })
+        } else if (queryLower.includes("leaks")) {
+          setResults({
+            columns: ["id", "email", "source", "password_hash", "leak_date"],
+            rows: [
+              {
+                id: 1,
+                email: "user1@example.com",
+                source: "Adobe",
+                password_hash: "5f4dcc3b5aa765d61d8327deb882cf99",
+                leak_date: "2013-10-04",
+              },
+              {
+                id: 2,
+                email: "user2@test.org",
+                source: "LinkedIn",
+                password_hash: "5f4dcc3b5aa765d61d8327deb882cf99",
+                leak_date: "2012-06-05",
+              },
+              {
+                id: 3,
+                email: "admin@company.net",
+                source: "Dropbox",
+                password_hash: "5f4dcc3b5aa765d61d8327deb882cf99",
+                leak_date: "2016-08-31",
+              },
+            ],
+          })
+        } else if (queryLower.includes("activities")) {
+          setResults({
+            columns: ["id", "title", "description", "count", "last_updated", "user_id"],
+            rows: [
+              {
+                id: 1,
+                title: "Citas",
+                description: "Registro de salidas juntos",
+                count: 5,
+                last_updated: "2023-04-15",
+                user_id: 1,
+              },
+              {
+                id: 2,
+                title: "Puntos",
+                description: "Registro de puntos acumulados",
+                count: 120,
+                last_updated: "2023-04-20",
+                user_id: 1,
+              },
+              {
+                id: 3,
+                title: "Películas",
+                description: "Películas vistas juntos",
+                count: 8,
+                last_updated: "2023-04-10",
+                user_id: 2,
               },
             ],
           })

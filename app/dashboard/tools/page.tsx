@@ -1,9 +1,36 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+"use client"
+
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import { ChevronLeft, ChevronRight } from "lucide-react"
 import { CounterManager } from "@/components/counter-manager"
 import { SumCalculator } from "@/components/sum-calculator"
 import { SubtractionCalculator } from "@/components/subtraction-calculator"
 
+const tools = [
+  { id: "counters", name: "Contadores", component: CounterManager },
+  { id: "sum-calculator", name: "Calculadora de Suma", component: SumCalculator },
+  { id: "subtraction-calculator", name: "Calculadora de Resta", component: SubtractionCalculator },
+]
+
 export default function ToolsPage() {
+  const [currentToolIndex, setCurrentToolIndex] = useState(0)
+
+  const CurrentTool = tools[currentToolIndex].component
+
+  const goToPrevTool = () => {
+    setCurrentToolIndex((prev) => (prev === 0 ? tools.length - 1 : prev - 1))
+  }
+
+  const goToNextTool = () => {
+    setCurrentToolIndex((prev) => (prev === tools.length - 1 ? 0 : prev + 1))
+  }
+
+  const goToTool = (index: number) => {
+    setCurrentToolIndex(index)
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -11,31 +38,38 @@ export default function ToolsPage() {
         <p className="text-gray-400">Contadores y calculadoras personalizadas</p>
       </div>
 
-      <Tabs defaultValue="counters" className="space-y-4">
-        <TabsList className="bg-gray-800 p-1 w-full">
-          <TabsTrigger value="counters" className="data-[state=active]:bg-gray-700 flex-1">
-            Contadores
-          </TabsTrigger>
-          <TabsTrigger value="sum-calculator" className="data-[state=active]:bg-gray-700 flex-1">
-            Calculadora de Suma
-          </TabsTrigger>
-          <TabsTrigger value="subtraction-calculator" className="data-[state=active]:bg-gray-700 flex-1">
-            Calculadora de Resta
-          </TabsTrigger>
-        </TabsList>
+      <div className="flex items-center justify-between mb-4">
+        <Button onClick={goToPrevTool} variant="outline" className="border-gray-700 text-white hover:bg-gray-700">
+          <ChevronLeft className="h-5 w-5 mr-1" />
+          Anterior
+        </Button>
 
-        <TabsContent value="counters" className="mt-6">
-          <CounterManager />
-        </TabsContent>
+        <div className="flex gap-2">
+          {tools.map((tool, index) => (
+            <Button
+              key={tool.id}
+              onClick={() => goToTool(index)}
+              variant={currentToolIndex === index ? "default" : "outline"}
+              className={
+                currentToolIndex === index
+                  ? "bg-blue-600 hover:bg-blue-700"
+                  : "border-gray-700 text-white hover:bg-gray-700"
+              }
+            >
+              {tool.name}
+            </Button>
+          ))}
+        </div>
 
-        <TabsContent value="sum-calculator" className="mt-6">
-          <SumCalculator />
-        </TabsContent>
+        <Button onClick={goToNextTool} variant="outline" className="border-gray-700 text-white hover:bg-gray-700">
+          Siguiente
+          <ChevronRight className="h-5 w-5 ml-1" />
+        </Button>
+      </div>
 
-        <TabsContent value="subtraction-calculator" className="mt-6">
-          <SubtractionCalculator />
-        </TabsContent>
-      </Tabs>
+      <Card className="bg-gray-800 border-gray-700 p-6">
+        <CurrentTool />
+      </Card>
     </div>
   )
 }
