@@ -36,6 +36,8 @@ export function EnhancedCounter({ id, initialTitle = "Nuevo Contador" }: Enhance
   const [players, setPlayers] = useState<Player[]>([
     { id: "player-1", name: "Jugador 1", count: 0, color: COLORS[0].bg },
   ])
+  const [isSaving, setIsSaving] = useState(false)
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle")
 
   // Cargar datos guardados al montar el componente
   useEffect(() => {
@@ -50,14 +52,52 @@ export function EnhancedCounter({ id, initialTitle = "Nuevo Contador" }: Enhance
 
   // Guardar datos cuando cambian
   useEffect(() => {
-    localStorage.setItem(
-      `enhanced-counter-${id}`,
-      JSON.stringify({
-        title,
-        description,
-        players,
-      }),
-    )
+    const data = {
+      title,
+      description,
+      players,
+    }
+
+    localStorage.setItem(`enhanced-counter-${id}`, JSON.stringify(data))
+
+    // Guardar en la base de datos (simulado)
+    const saveToDatabase = async () => {
+      if (title && players.length > 0) {
+        setIsSaving(true)
+        setSaveStatus("saving")
+        try {
+          // Simular una llamada a la API
+          await new Promise((resolve) => setTimeout(resolve, 500))
+
+          // Aquí iría la llamada real a la API
+          // await fetch('/api/counters/save', {
+          //   method: 'POST',
+          //   headers: {
+          //     'Content-Type': 'application/json',
+          //   },
+          //   body: JSON.stringify({
+          //     id,
+          //     ...data
+          //   }),
+          // })
+
+          setSaveStatus("saved")
+          setTimeout(() => setSaveStatus("idle"), 2000)
+        } catch (error) {
+          console.error("Error al guardar en la base de datos:", error)
+          setSaveStatus("error")
+          setTimeout(() => setSaveStatus("idle"), 3000)
+        } finally {
+          setIsSaving(false)
+        }
+      }
+    }
+
+    const debounce = setTimeout(() => {
+      saveToDatabase()
+    }, 1000)
+
+    return () => clearTimeout(debounce)
   }, [title, description, players, id])
 
   const addPlayer = () => {
@@ -114,12 +154,17 @@ export function EnhancedCounter({ id, initialTitle = "Nuevo Contador" }: Enhance
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <Input
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className="text-xl font-bold bg-gray-700 border-gray-600 text-white"
-          placeholder="Título del contador"
-        />
+        <div className="flex items-center gap-2">
+          <Input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="text-xl font-bold bg-gray-700 border-gray-600 text-white"
+            placeholder="Título del contador"
+          />
+          {saveStatus === "saving" && <span className="text-xs text-blue-400">Guardando...</span>}
+          {saveStatus === "saved" && <span className="text-xs text-green-400">¡Guardado!</span>}
+          {saveStatus === "error" && <span className="text-xs text-red-400">Error al guardar</span>}
+        </div>
         <Textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}

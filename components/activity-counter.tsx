@@ -4,6 +4,8 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Plus, Minus, RotateCcw } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 
 interface ActivityCounterProps {
   title: string
@@ -23,6 +25,8 @@ export function ActivityCounter({
   const [count, setCount] = useState(initialCount)
   const [localTitle, setLocalTitle] = useState(title)
   const [localDescription, setLocalDescription] = useState(description)
+  const [isEditingTitle, setIsEditingTitle] = useState(false)
+  const [isEditingDescription, setIsEditingDescription] = useState(false)
 
   // Cargar el contador desde localStorage al montar el componente
   useEffect(() => {
@@ -35,16 +39,35 @@ export function ActivityCounter({
     }
   }, [id])
 
-  // Guardar el contador en localStorage cuando cambia
+  // Guardar el contador en localStorage y base de datos cuando cambia
   useEffect(() => {
-    localStorage.setItem(
-      `activity-counter-${id}`,
-      JSON.stringify({
-        count,
-        title: localTitle,
-        description: localDescription,
-      }),
-    )
+    const data = {
+      count,
+      title: localTitle,
+      description: localDescription,
+    }
+
+    localStorage.setItem(`activity-counter-${id}`, JSON.stringify(data))
+
+    // Guardar en la base de datos (simulado)
+    const saveToDatabase = async () => {
+      try {
+        await fetch("/api/activities/save", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            id,
+            ...data,
+          }),
+        })
+      } catch (error) {
+        console.error("Error al guardar en la base de datos:", error)
+      }
+    }
+
+    saveToDatabase()
   }, [count, localTitle, localDescription, id])
 
   const increment = () => setCount(count + 1)
@@ -62,8 +85,40 @@ export function ActivityCounter({
   return (
     <Card className="bg-gray-800 border-gray-700">
       <CardHeader>
-        <CardTitle className="text-xl font-bold text-white">{localTitle}</CardTitle>
-        <p className="text-sm text-gray-400">{localDescription}</p>
+        {isEditingTitle ? (
+          <Input
+            value={localTitle}
+            onChange={(e) => setLocalTitle(e.target.value)}
+            onBlur={() => setIsEditingTitle(false)}
+            onKeyDown={(e) => e.key === "Enter" && setIsEditingTitle(false)}
+            className="text-xl font-bold bg-gray-700 border-gray-600 text-white"
+            autoFocus
+          />
+        ) : (
+          <CardTitle
+            className="text-xl font-bold text-white cursor-pointer hover:text-blue-400"
+            onClick={() => setIsEditingTitle(true)}
+          >
+            {localTitle}
+          </CardTitle>
+        )}
+
+        {isEditingDescription ? (
+          <Textarea
+            value={localDescription}
+            onChange={(e) => setLocalDescription(e.target.value)}
+            onBlur={() => setIsEditingDescription(false)}
+            className="text-sm bg-gray-700 border-gray-600 text-gray-300"
+            autoFocus
+          />
+        ) : (
+          <p
+            className="text-sm text-gray-400 cursor-pointer hover:text-blue-400"
+            onClick={() => setIsEditingDescription(true)}
+          >
+            {localDescription || "Haz clic para añadir una descripción"}
+          </p>
+        )}
       </CardHeader>
       <CardContent className="p-6">
         <div className="space-y-6">

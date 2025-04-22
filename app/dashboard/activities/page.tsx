@@ -13,6 +13,16 @@ export default function ActivitiesPage() {
 
         <ActivityCounter title="Puntos" description="Registro de puntos acumulados" initialCount={0} id="points" />
       </div>
+
+      <div className="mt-8 p-4 bg-gray-800 border border-gray-700 rounded-lg">
+        <h2 className="text-xl font-bold text-white mb-4">¿Cómo usar los contadores?</h2>
+        <ul className="list-disc list-inside space-y-2 text-gray-300">
+          <li>Haz clic en el título o descripción para editarlos</li>
+          <li>Usa los botones para sumar o restar puntos</li>
+          <li>Los cambios se guardan automáticamente</li>
+          <li>Puedes reiniciar el contador a cero con el botón de reinicio</li>
+        </ul>
+      </div>
     </div>
   )
 }

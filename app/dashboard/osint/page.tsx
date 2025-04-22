@@ -1,10 +1,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { EmailIntelligence } from "@/components/osint/email-intelligence"
-import { PhoneIntelligence } from "@/components/osint/phone-intelligence"
-import { UsernameIntelligence } from "@/components/osint/username-intelligence"
-import { IpIntelligence } from "@/components/osint/ip-intelligence"
-import { PersonIntelligence } from "@/components/osint/person-intelligence"
-import { ThreatIntelligence } from "@/components/osint/threat-intelligence"
+import { TargetProfiler } from "@/components/osint/target-profiler"
+import { RelationshipGraph } from "@/components/osint/relationship-graph"
+import { WatchlistMonitor } from "@/components/osint/watchlist-monitor"
 import { OsintDashboard } from "@/components/osint/osint-dashboard"
 import { OsintAnalytics } from "@/components/osint/osint-analytics"
 
@@ -20,50 +17,29 @@ export default function OsintPage() {
 
       <OsintAnalytics />
 
-      <Tabs defaultValue="email" className="space-y-4">
+      <Tabs defaultValue="profiler" className="space-y-4">
         <TabsList className="bg-gray-800 p-1 w-full flex flex-wrap">
-          <TabsTrigger value="email" className="data-[state=active]:bg-gray-700 flex-1">
-            Email
+          <TabsTrigger value="profiler" className="data-[state=active]:bg-gray-700 flex-1">
+            Perfilador
           </TabsTrigger>
-          <TabsTrigger value="phone" className="data-[state=active]:bg-gray-700 flex-1">
-            Teléfono
+          <TabsTrigger value="graph" className="data-[state=active]:bg-gray-700 flex-1">
+            Grafo de Relaciones
           </TabsTrigger>
-          <TabsTrigger value="username" className="data-[state=active]:bg-gray-700 flex-1">
-            Username
-          </TabsTrigger>
-          <TabsTrigger value="ip" className="data-[state=active]:bg-gray-700 flex-1">
-            IP
-          </TabsTrigger>
-          <TabsTrigger value="person" className="data-[state=active]:bg-gray-700 flex-1">
-            Persona
-          </TabsTrigger>
-          <TabsTrigger value="threat" className="data-[state=active]:bg-gray-700 flex-1">
-            Amenazas
+          <TabsTrigger value="watchlist" className="data-[state=active]:bg-gray-700 flex-1">
+            Watchlist
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="email" className="mt-6">
-          <EmailIntelligence />
+        <TabsContent value="profiler" className="mt-6">
+          <TargetProfiler />
         </TabsContent>
 
-        <TabsContent value="phone" className="mt-6">
-          <PhoneIntelligence />
+        <TabsContent value="graph" className="mt-6">
+          <RelationshipGraph />
         </TabsContent>
 
-        <TabsContent value="username" className="mt-6">
-          <UsernameIntelligence />
-        </TabsContent>
-
-        <TabsContent value="ip" className="mt-6">
-          <IpIntelligence />
-        </TabsContent>
-
-        <TabsContent value="person" className="mt-6">
-          <PersonIntelligence />
-        </TabsContent>
-
-        <TabsContent value="threat" className="mt-6">
-          <ThreatIntelligence />
+        <TabsContent value="watchlist" className="mt-6">
+          <WatchlistMonitor />
         </TabsContent>
       </Tabs>
     </div>
