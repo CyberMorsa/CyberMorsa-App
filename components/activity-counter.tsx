@@ -3,9 +3,10 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Plus, Minus, RotateCcw } from "lucide-react"
+import { Plus, Minus, RotateCcw, Save } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { useToast } from "@/hooks/use-toast"
 
 interface ActivityCounterProps {
   title: string
@@ -27,15 +28,21 @@ export function ActivityCounter({
   const [localDescription, setLocalDescription] = useState(description)
   const [isEditingTitle, setIsEditingTitle] = useState(false)
   const [isEditingDescription, setIsEditingDescription] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const { toast } = useToast()
 
   // Cargar el contador desde localStorage al montar el componente
   useEffect(() => {
     const savedData = localStorage.getItem(`activity-counter-${id}`)
     if (savedData) {
-      const data = JSON.parse(savedData)
-      setCount(data.count)
-      setLocalTitle(data.title)
-      setLocalDescription(data.description)
+      try {
+        const data = JSON.parse(savedData)
+        setCount(data.count)
+        setLocalTitle(data.title)
+        setLocalDescription(data.description)
+      } catch (error) {
+        console.error("Error al cargar datos:", error)
+      }
     }
   }, [id])
 
@@ -52,34 +59,55 @@ export function ActivityCounter({
     // Guardar en la base de datos (simulado)
     const saveToDatabase = async () => {
       try {
-        await fetch("/api/activities/save", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            id,
-            ...data,
-          }),
-        })
+        setIsSaving(true)
+        // Simulación de guardado
+        await new Promise((resolve) => setTimeout(resolve, 500))
+
+        // Aquí iría la llamada real a la API
+        // await fetch("/api/activities/save", {
+        //   method: "POST",
+        //   headers: {
+        //     "Content-Type": "application/json",
+        //   },
+        //   body: JSON.stringify({
+        //     id,
+        //     ...data,
+        //   }),
+        // })
+
+        setIsSaving(false)
       } catch (error) {
         console.error("Error al guardar en la base de datos:", error)
+        setIsSaving(false)
       }
     }
 
-    saveToDatabase()
+    const debounce = setTimeout(() => {
+      saveToDatabase()
+    }, 1000)
+
+    return () => clearTimeout(debounce)
   }, [count, localTitle, localDescription, id])
 
   const increment = () => setCount(count + 1)
+
   const decrement = () => {
     if (count > 0 || allowNegative) {
       setCount(count - 1)
     }
   }
+
   const reset = () => {
     if (confirm("¿Estás seguro de que quieres reiniciar el contador a cero?")) {
       setCount(0)
     }
+  }
+
+  const saveManually = () => {
+    toast({
+      title: "Guardado",
+      description: "Los datos se han guardado correctamente",
+    })
   }
 
   return (
@@ -99,7 +127,7 @@ export function ActivityCounter({
             className="text-xl font-bold text-white cursor-pointer hover:text-blue-400"
             onClick={() => setIsEditingTitle(true)}
           >
-            {localTitle}
+            {localTitle || "Haz clic para añadir un título"}
           </CardTitle>
         )}
 
@@ -151,6 +179,18 @@ export function ActivityCounter({
                 <RotateCcw className="mr-2 h-5 w-5" />
                 <span>Reiniciar</span>
               </Button>
+            </div>
+            <div className="mt-4 flex items-center">
+              <Button
+                onClick={saveManually}
+                variant="outline"
+                className="border-gray-600 text-white hover:bg-gray-700"
+                disabled={isSaving}
+              >
+                <Save className="mr-2 h-4 w-4" />
+                <span>{isSaving ? "Guardando..." : "Guardar"}</span>
+              </Button>
+              {isSaving && <span className="ml-2 text-sm text-gray-400">Guardando cambios...</span>}
             </div>
           </div>
         </div>

@@ -39,10 +39,10 @@ export function WatchlistMonitor() {
   const loadWatchlist = async () => {
     try {
       setLoading(true)
-      
+
       // Simulación de carga de datos
       await new Promise((resolve) => setTimeout(resolve, 1000))
-      
+
       // Datos simulados
       const mockWatchlist = [
         {
@@ -57,8 +57,8 @@ export function WatchlistMonitor() {
           details: {
             breaches: 2,
             lastBreach: "2023-03-10",
-            threatScore: 75
-          }
+            threatScore: 75,
+          },
         },
         {
           id: 2,
@@ -71,8 +71,8 @@ export function WatchlistMonitor() {
           notifyTelegram: true,
           details: {
             threatScore: 15,
-            reports: 0
-          }
+            reports: 0,
+          },
         },
         {
           id: 3,
@@ -85,8 +85,8 @@ export function WatchlistMonitor() {
           notifyTelegram: false,
           details: {
             subdomains: 5,
-            technologies: ["Nginx", "PHP", "MySQL"]
-          }
+            technologies: ["Nginx", "PHP", "MySQL"],
+          },
         },
         {
           id: 4,
@@ -99,11 +99,11 @@ export function WatchlistMonitor() {
           notifyTelegram: false,
           details: {
             platforms: 8,
-            newMentions: 1
-          }
-        }
+            newMentions: 1,
+          },
+        },
       ]
-      
+
       setWatchlist(mockWatchlist)
     } catch (error) {
       console.error("Error al cargar watchlist:", error)
@@ -120,13 +120,13 @@ export function WatchlistMonitor() {
   // Función para añadir un nuevo elemento a la watchlist
   const addToWatchlist = async () => {
     if (!newItem.trim()) return
-    
+
     try {
       setLoading(true)
-      
+
       // Simulación de guardado
       await new Promise((resolve) => setTimeout(resolve, 1000))
-      
+
       // Añadir elemento simulado
       const newWatchlistItem = {
         id: watchlist.length + 1,
@@ -137,13 +137,13 @@ export function WatchlistMonitor() {
         alerts: 0,
         notifyEmail,
         notifyTelegram,
-        details: {}
+        details: {},
       }
-      
+
       setWatchlist([...watchlist, newWatchlistItem])
       setNewItem("")
       setShowAddDialog(false)
-      
+
       toast({
         title: "Elemento añadido",
         description: `${newItem} ha sido añadido a la watchlist.`,
@@ -165,9 +165,9 @@ export function WatchlistMonitor() {
     try {
       // Simulación de eliminación
       await new Promise((resolve) => setTimeout(resolve, 500))
-      
-      setWatchlist(watchlist.filter(item => item.id !== id))
-      
+
+      setWatchlist(watchlist.filter((item) => item.id !== id))
+
       toast({
         title: "Elemento eliminado",
         description: "El elemento ha sido eliminado de la watchlist.",
@@ -187,17 +187,19 @@ export function WatchlistMonitor() {
     try {
       // Simulación de actualización
       await new Promise((resolve) => setTimeout(resolve, 300))
-      
-      setWatchlist(watchlist.map(item => {
-        if (item.id === id) {
-          return {
-            ...item,
-            notifyEmail: type === "email" ? !item.notifyEmail : item.notifyEmail,
-            notifyTelegram: type === "telegram" ? !item.notifyTelegram : item.notifyTelegram
+
+      setWatchlist(
+        watchlist.map((item) => {
+          if (item.id === id) {
+            return {
+              ...item,
+              notifyEmail: type === "email" ? !item.notifyEmail : item.notifyEmail,
+              notifyTelegram: type === "telegram" ? !item.notifyTelegram : item.notifyTelegram,
+            }
           }
-        }
-        return item
-      }))
+          return item
+        }),
+      )
     } catch (error) {
       console.error("Error al actualizar notificaciones:", error)
       toast({
@@ -212,29 +214,29 @@ export function WatchlistMonitor() {
   const refreshWatchlist = async () => {
     try {
       setRefreshing(true)
-      
+
       // Simulación de actualización
       await new Promise((resolve) => setTimeout(resolve, 2000))
-      
+
       // Actualizar aleatoriamente algunos elementos
-      const updatedWatchlist = watchlist.map(item => {
+      const updatedWatchlist = watchlist.map((item) => {
         if (Math.random() > 0.7) {
           const newAlerts = Math.floor(Math.random() * 3)
           return {
             ...item,
             status: newAlerts > 0 ? (newAlerts > 1 ? "risk" : "warning") : "ok",
             alerts: item.alerts + newAlerts,
-            lastChecked: new Date().toISOString().split("T")[0]
+            lastChecked: new Date().toISOString().split("T")[0],
           }
         }
         return {
           ...item,
-          lastChecked: new Date().toISOString().split("T")[0]
+          lastChecked: new Date().toISOString().split("T")[0],
         }
       })
-      
+
       setWatchlist(updatedWatchlist)
-      
+
       toast({
         title: "Watchlist actualizada",
         description: "Se ha actualizado el estado de todos los elementos.",
@@ -286,8 +288,8 @@ export function WatchlistMonitor() {
                         item.status === "risk"
                           ? "bg-red-500/20"
                           : item.status === "warning"
-                          ? "bg-yellow-500/20"
-                          : "bg-green-500/20"
+                            ? "bg-yellow-500/20"
+                            : "bg-green-500/20"
                       }`}
                     >
                       {item.status === "risk" ? (
@@ -306,10 +308,10 @@ export function WatchlistMonitor() {
                             item.type === "email"
                               ? "bg-blue-500/20 text-blue-300"
                               : item.type === "username"
-                              ? "bg-purple-500/20 text-purple-300"
-                              : item.type === "ip"
-                              ? "bg-green-500/20 text-green-300"
-                              : "bg-yellow-500/20 text-yellow-300"
+                                ? "bg-purple-500/20 text-purple-300"
+                                : item.type === "ip"
+                                  ? "bg-green-500/20 text-green-300"
+                                  : "bg-yellow-500/20 text-yellow-300"
                           }
                         >
                           {item.type}
@@ -320,7 +322,7 @@ export function WatchlistMonitor() {
                       </p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center gap-3">
                     <div className="flex items-center gap-1">
                       <Button
@@ -342,14 +344,9 @@ export function WatchlistMonitor() {
                         onClick={() => toggleNotification(item.id, "telegram")}
                       >
                         {item.notifyTelegram ? (
-                          <svg className="h-4 w-4 text-blue-400" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.05-.2-.06-.06-.16-.04-.23-.02-.1.03-1.62 1.03-4.58 3.01-.43.3-.82.44-1.17.43-.39-.01-1.13-.22-1.68-.4-.68-.23-1.22-.35-1.17-.74.02-.2.3-.4.81-.6 3.15-1.37 5.26-2.27 6.33-2.71 3.02-1.24 3.65-1.46 4.06-1.46.09 0 .29.02.42.12.11.08.14.2.15.29.01.12.01.29-.01.45z" />
-                          </svg>
+                          <Bell className="h-4 w-4 text-blue-400" />
                         ) : (
-                          <svg className="h-4 w-4 text-gray-400" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M12 2C6.  viewBox="0 0 24 24" fill=\"currentColor">
-                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.05-.2-.06-.06-.16-.04-.23-.02-.1.03-1.62 1.03-4.58 3.01-.43.3-.82.44-1.17.43-.39-.01-1.13-.22-1.68-.4-.68-.23-1.22-.35-1.17-.74.02-.2.3-.4.81-.6 3.15-1.37 5.26-2.27 6.33-2.71 3.02-1.24 3.65-1.46 4.06-1.46.09 0 .29.02.42.12.11.08.14.2.15.29.01.12.01.29-.01.45z" />
-                          </svg>
+                          <BellOff className="h-4 w-4 text-gray-400" />
                         )}
                       </Button>
                     </div>
@@ -363,14 +360,14 @@ export function WatchlistMonitor() {
                     </Button>
                   </div>
                 </div>
-                
+
                 {item.status !== "ok" && (
-                  <div className={`mt-3 p-2 rounded-md ${
-                    item.status === "risk" ? "bg-red-500/10" : "bg-yellow-500/10"
-                  }`}>
+                  <div
+                    className={`mt-3 p-2 rounded-md ${item.status === "risk" ? "bg-red-500/10" : "bg-yellow-500/10"}`}
+                  >
                     <p className="text-sm text-gray-300">
-                      {item.status === "risk" 
-                        ? `¡Alerta! Se han detectado ${item.alerts} nuevas amenazas para este objetivo.` 
+                      {item.status === "risk"
+                        ? `¡Alerta! Se han detectado ${item.alerts} nuevas amenazas para este objetivo.`
                         : `Se ha detectado ${item.alerts} cambio en este objetivo.`}
                     </p>
                   </div>
@@ -389,7 +386,7 @@ export function WatchlistMonitor() {
             </Button>
           </div>
         )}
-        
+
         <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
           <DialogContent className="bg-gray-800 text-white border-gray-700">
             <DialogHeader>
@@ -398,7 +395,7 @@ export function WatchlistMonitor() {
                 Añade un elemento para monitorear cambios y amenazas
               </DialogDescription>
             </DialogHeader>
-            
+
             <div className="space-y-4 py-4">
               <div className="space-y-2">
                 <Label htmlFor="item-type">Tipo de elemento</Label>
@@ -414,7 +411,7 @@ export function WatchlistMonitor() {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="item-value">Valor</Label>
                 <Input
@@ -426,28 +423,20 @@ export function WatchlistMonitor() {
                   className="bg-gray-700 border-gray-600 text-white"
                 />
               </div>
-              
+
               <div className="space-y-3 pt-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="notify-email">Notificar por email</Label>
-                  <Switch
-                    id="notify-email"
-                    checked={notifyEmail}
-                    onCheckedChange={setNotifyEmail}
-                  />
+                  <Switch id="notify-email" checked={notifyEmail} onCheckedChange={setNotifyEmail} />
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <Label htmlFor="notify-telegram">Notificar por Telegram</Label>
-                  <Switch
-                    id="notify-telegram"
-                    checked={notifyTelegram}
-                    onCheckedChange={setNotifyTelegram}
-                  />
+                  <Switch id="notify-telegram" checked={notifyTelegram} onCheckedChange={setNotifyTelegram} />
                 </div>
               </div>
             </div>
-            
+
             <DialogFooter>
               <Button variant="outline" onClick={() => setShowAddDialog(false)}>
                 Cancelar
