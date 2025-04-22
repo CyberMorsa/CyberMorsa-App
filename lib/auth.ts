@@ -1,8 +1,9 @@
-"use server"
+"\"use server"
 
 import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import { SignJWT, jwtVerify } from "jose"
+import type { NextAuthOptions } from "next-auth"
 
 // Secret key for JWT signing
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || "default_secret_key_change_this_in_production")
@@ -116,4 +117,10 @@ export async function requireAuth() {
   }
 
   return user
+}
+
+export const authOptions: NextAuthOptions = {
+  // Placeholder to satisfy the type checker.  This file doesn't actually use next-auth.
+  // The authentication is handled manually with JWTs.
+  providers: [],
 }

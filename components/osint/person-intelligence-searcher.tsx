@@ -27,6 +27,7 @@ import {
   Download,
   Eye,
   Plus,
+  Loader2,
 } from "lucide-react"
 
 // Interfaces para tipado
@@ -103,165 +104,39 @@ export function PersonIntelligenceSearcher() {
   const performOsintSearch = async (query: string) => {
     const queryType = detectQueryType(query)
 
-    // En un entorno real, aquí se conectaría con APIs externas
-    // como Hunter.io, Clearbit, FullContact, etc.
-
     try {
       setIsLoading(true)
       setError(null)
 
-      // Simulamos una llamada a API con un retraso
-      await new Promise((resolve) => setTimeout(resolve, 2000))
+      // Realizamos la petición a nuestra API
+      const response = await fetch("/api/osint/person-intelligence", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          query,
+          queryType,
+        }),
+      })
 
-      // Generamos datos dinámicos basados en la consulta
-      const generatedData = generateDynamicData(query, queryType)
+      if (!response.ok) {
+        throw new Error("Error al realizar la búsqueda OSINT")
+      }
+
+      const data = await response.json()
 
       // Guardamos en el historial
       if (!searchHistory.includes(query)) {
         setSearchHistory((prev) => [query, ...prev].slice(0, 10))
       }
 
-      setPersonData(generatedData)
+      setPersonData(data)
     } catch (err) {
       console.error("Error en la búsqueda OSINT:", err)
       setError("Error al procesar la solicitud. Verifica tu conexión e inténtalo de nuevo.")
     } finally {
       setIsLoading(false)
-    }
-  }
-
-  // Función para generar datos dinámicos basados en la consulta
-  const generateDynamicData = (query: string, queryType: "name" | "email" | "username" | "phone"): PersonData => {
-    // Generamos un hash simple para el query para tener consistencia
-    const queryHash = Array.from(query).reduce((acc, char) => acc + char.charCodeAt(0), 0)
-
-    // Generamos un nombre basado en el tipo de consulta
-    let name, username, email, phone
-
-    switch (queryType) {
-      case "name":
-        name = query
-        username = query.toLowerCase().replace(/\s+/g, ".")
-        email = `${username}@example.com`
-        phone = `+${34000000000 + (queryHash % 999999999)}`
-        break
-      case "email":
-        email = query
-        username = query.split("@")[0]
-        name = username
-          .split(/[._-]/)
-          .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-          .join(" ")
-        phone = `+${34000000000 + (queryHash % 999999999)}`
-        break
-      case "username":
-        username = query
-        name = query
-          .split(/[._-]/)
-          .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-          .join(" ")
-        email = `${username}@example.com`
-        phone = `+${34000000000 + (queryHash % 999999999)}`
-        break
-      case "phone":
-        phone = query
-        username = `user${queryHash % 10000}`
-        name = `Usuario ${queryHash % 10000}`
-        email = `${username}@example.com`
-        break
-    }
-
-    // Generamos perfiles sociales basados en el username
-    const socialProfiles: SocialProfile[] = [
-      {
-        platform: "Twitter",
-        username: `@${username}`,
-        url: `https://twitter.com/${username}`,
-        followers: 1000 + (queryHash % 5000),
-        posts: 100 + (queryHash % 900),
-        verified: queryHash % 5 === 0,
-        lastActive: "2023-05-15",
-      },
-      {
-        platform: "LinkedIn",
-        username: username,
-        url: `https://linkedin.com/in/${username}`,
-        connections: 500 + (queryHash % 1000),
-      },
-      {
-        platform: "Facebook",
-        username: username,
-        url: `https://facebook.com/${username}`,
-        friends: 500 + (queryHash % 1000),
-      },
-      {
-        platform: "Instagram",
-        username: `${username}.photo`,
-        url: `https://instagram.com/${username}.photo`,
-        followers: 1000 + (queryHash % 10000),
-        posts: 50 + (queryHash % 500),
-      },
-      {
-        platform: "GitHub",
-        username: username,
-        url: `https://github.com/${username}`,
-        followers: 10 + (queryHash % 500),
-      },
-    ]
-
-    // Filtraciones de datos
-    const breachNames = ["LinkedInBreak", "Adobe2020", "Dropbox2016", "Yahoo2013", "MySpace2008", "Canva2019"]
-    const breachSeverities: ("high" | "medium" | "low")[] = ["high", "medium", "low"]
-
-    const dataBreaches: DataBreach[] = []
-
-    // Generamos entre 0 y 3 filtraciones
-    const breachCount = queryHash % 4
-    for (let i = 0; i < breachCount; i++) {
-      const year = 2015 + (queryHash % 8)
-      const month = 1 + (queryHash % 12)
-      const day = 1 + (queryHash % 28)
-
-      dataBreaches.push({
-        name: breachNames[queryHash % breachNames.length],
-        date: `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}`,
-        severity: breachSeverities[queryHash % breachSeverities.length],
-        info: "Información personal expuesta",
-        affectedData: ["Email", "Contraseña", "Nombre", "Teléfono"].slice(0, 1 + (queryHash % 4)),
-      })
-    }
-
-    // Calculamos un score de riesgo basado en varios factores
-    let riskScore = 30 // Base score
-
-    // Más filtraciones = más riesgo
-    riskScore += dataBreaches.length * 10
-
-    // Más perfiles sociales = más exposición
-    riskScore += socialProfiles.length * 5
-
-    // Ajustamos para que esté entre 0 y 100
-    riskScore = Math.min(Math.max(riskScore, 0), 100)
-
-    return {
-      query,
-      queryType,
-      name,
-      username,
-      email,
-      phone,
-      location: ["Madrid, España", "Barcelona, España", "Valencia, España", "Sevilla, España"][queryHash % 4],
-      socialProfiles,
-      dataBreaches,
-      relatedEmails: [`${username}.work@example.com`, `${username}.personal@example.com`],
-      relatedUsernames: [`${username}_2`, `real.${username}`, `${username}Official`],
-      riskScore,
-      lastUpdated: new Date().toISOString().split("T")[0],
-      profileImage: `/placeholder.svg?height=200&width=200&text=${name?.charAt(0) || username?.charAt(0)}`,
-      occupation: ["Desarrollador", "Diseñador", "Marketing", "Estudiante", "Profesor"][queryHash % 5],
-      websites: [`https://${username}.com`, `https://${username}.net`],
-      ipAddresses: [`192.168.${queryHash % 255}.${queryHash % 255}`],
-      domains: [`${username}.com`, `${username}.net`],
     }
   }
 
@@ -312,7 +187,7 @@ export function PersonIntelligenceSearcher() {
             >
               {isLoading ? (
                 <>
-                  <div className="animate-spin mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Analizando...
                 </>
               ) : (
