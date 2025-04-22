@@ -1,5 +1,46 @@
 import type { NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
+import * as jwt from "jsonwebtoken"
+
+// Dummy user data (replace with database calls in a real application)
+const users = [
+  {
+    id: "1",
+    username: process.env.ADMIN_USERNAME || "admin",
+    password: process.env.ADMIN_PASSWORD || "password123",
+    role: "admin",
+  },
+  {
+    id: "2",
+    username: process.env.GUEST_USERNAME || "invitado",
+    password: process.env.GUEST_PASSWORD || "invitado123",
+    role: "guest",
+  },
+]
+
+export async function verifyCredentials(username: string, password: string) {
+  const user = users.find((u) => u.username === username)
+
+  if (!user) {
+    return null
+  }
+
+  // In a real application, you would compare the password with a hashed password stored in the database
+  if (user.password !== password) {
+    return null
+  }
+
+  return { id: user.id, username: user.username, role: user.role }
+}
+
+export async function createToken(user: { id: string; username: string; role: string }) {
+  // In a real application, you would use a more secure method to create a JWT
+  const secret = process.env.NEXTAUTH_SECRET || "tu_clave_secreta_aqui_minimo_32_caracteres"
+  const token = jwt.sign({ userId: user.id, username: user.username, role: user.role }, secret, {
+    expiresIn: "24h",
+  })
+  return token
+}
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -65,41 +106,4 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
     maxAge: 24 * 60 * 60, // 24 horas
   },
-  secret: process.env.AUTH_SECRET,
-}
-
-export async function requireAuth() {
-  // Esta función se mantiene para compatibilidad con el código existente
-  // pero ahora la verificación real se hace en el layout protegido
-  return {
-    username: "Usuario",
-    role: "guest",
-  }
-}
-
-export async function verifyCredentials(username: string, password: string) {
-  if (username === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD) {
-    return {
-      id: "1",
-      username: username,
-      role: "admin",
-    }
-  }
-
-  if (username === process.env.GUEST_USERNAME && password === process.env.GUEST_PASSWORD) {
-    return {
-      id: "2",
-      username: username,
-      role: "guest",
-    }
-  }
-
-  return null
-}
-
-export async function createToken(user: { username: string; role: string }) {
-  // In a real application, you would use a JWT library to create a token.
-  // This is a simplified example and should not be used in production.
-  const token = `mock-token-for-${user.username}-${user.role}`
-  return token
 }

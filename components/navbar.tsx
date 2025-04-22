@@ -4,7 +4,6 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { signOut, useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
-import { ThemeToggle } from "@/components/theme-toggle"
 import { Shield, Menu, X, LogOut, Loader2 } from "lucide-react"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
@@ -59,7 +58,6 @@ export function Navbar() {
           {session?.user?.name && (
             <span className="text-sm text-muted-foreground hidden md:inline-block mr-2">{session.user.name}</span>
           )}
-          <ThemeToggle />
           <Button variant="ghost" size="sm" onClick={handleLogout} disabled={loggingOut}>
             {loggingOut ? (
               <Loader2 className="h-4 w-4 animate-spin" />

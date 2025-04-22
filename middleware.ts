@@ -21,7 +21,7 @@ export async function middleware(request: NextRequest) {
   // Verificar si existe el token de autenticación
   const token = await getToken({
     req: request,
-    secret: process.env.AUTH_SECRET,
+    secret: process.env.NEXTAUTH_SECRET,
   })
 
   // Si no hay token, redirigir al login

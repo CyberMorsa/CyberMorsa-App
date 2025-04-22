@@ -1,14 +1,15 @@
 import type React from "react"
-import "./globals.css"
+import type { Metadata } from "next"
 import { Inter } from "next/font/google"
+import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
-import { SessionProvider } from "@/components/providers/session-provider"
+import { SessionProvider } from "@/components/session-provider"
 
 const inter = Inter({ subsets: ["latin"] })
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "OSINT Personal",
-  description: "Herramientas OSINT y aplicaciones personales",
+  description: "Plataforma para herramientas OSINT y aplicaciones personales",
     generator: 'v0.dev'
 }
 
