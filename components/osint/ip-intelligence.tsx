@@ -2,16 +2,18 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
-import { Loader2, Globe, AlertTriangle, Download, Database, ExternalLink } from "lucide-react"
+import { Loader2, Globe, AlertTriangle, Download, Database, ExternalLink, History } from "lucide-react"
 import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useToast } from "@/hooks/use-toast"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
 export function IpIntelligence() {
   const [ip, setIp] = useState("")
@@ -24,6 +26,42 @@ export function IpIntelligence() {
     ipapi: true,
     greynoise: true,
   })
+  const [savedResults, setSavedResults] = useState<any[]>([])
+  const [loadingSaved, setLoadingSaved] = useState(false)
+  const [showHistory, setShowHistory] = useState(false)
+
+  const { toast } = useToast()
+
+  // Cargar resultados guardados al montar el componente
+  useEffect(() => {
+    fetchSavedResults()
+  }, [])
+
+  // Función para obtener resultados guardados
+  const fetchSavedResults = async () => {
+    try {
+      setLoadingSaved(true)
+      const response = await fetch("/api/osint/ip-intelligence")
+      const data = await response.json()
+
+      if (data.success) {
+        setSavedResults(data.data)
+      } else {
+        console.error("Error al cargar resultados guardados:", data.error)
+      }
+    } catch (error) {
+      console.error("Error al cargar resultados guardados:", error)
+    } finally {
+      setLoadingSaved(false)
+    }
+  }
+
+  // Función para cargar un resultado guardado
+  const loadSavedResult = (savedResult: any) => {
+    setResults(savedResult.raw_data)
+    setIp(savedResult.ip_address)
+    setShowHistory(false)
+  }
 
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault()
@@ -52,7 +90,7 @@ export function IpIntelligence() {
       const isAbusive = Math.random() > 0.7
       const isScanner = Math.random() > 0.8
 
-      setResults({
+      const resultData = {
         ip,
         abuseipdb: selectedApis.abuseipdb
           ? {
@@ -156,9 +194,16 @@ export function IpIntelligence() {
               },
             }
           : null,
-      })
+      }
+
+      setResults(resultData)
     } catch (error) {
       console.error("Error al buscar información de la IP:", error)
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudo completar la búsqueda. Inténtalo de nuevo.",
+      })
     } finally {
       clearInterval(interval)
       setProgress(100)
@@ -166,10 +211,67 @@ export function IpIntelligence() {
     }
   }
 
-  function saveToDatabase() {
+  async function saveToDatabase() {
     if (!results) return
-    // Simulación de guardado en base de datos
-    alert(`IP ${results.ip} y todos sus resultados guardados en la base de datos`)
+
+    try {
+      // Preparar datos para guardar
+      const dataToSave = {
+        ip_address: results.ip,
+        hostname: results.ipinfo?.hostname || null,
+        country: results.ipinfo?.country || results.ipapi?.countryCode || null,
+        region: results.ipinfo?.region || results.ipapi?.regionName || null,
+        city: results.ipinfo?.city || results.ipapi?.city || null,
+        latitude: results.ipinfo?.loc?.split(",")[0] || results.ipapi?.lat || null,
+        longitude: results.ipinfo?.loc?.split(",")[1] || results.ipapi?.lon || null,
+        isp: results.ipapi?.isp || results.ipinfo?.org?.split(" ")[1] || null,
+        organization: results.ipinfo?.company?.name || results.ipapi?.org || null,
+        asn: results.ipinfo?.asn?.asn || results.ipapi?.as?.split(" ")[0] || null,
+        is_proxy: results.ipinfo?.privacy?.proxy || results.ipapi?.proxy || false,
+        is_vpn: results.ipinfo?.privacy?.vpn || false,
+        is_tor: results.ipinfo?.privacy?.tor || false,
+        is_hosting: results.ipinfo?.privacy?.hosting || results.ipapi?.hosting || false,
+        abuse_score: results.abuseipdb?.abuseScore || null,
+        threat_level: results.greynoise?.classification || null,
+        categories: results.abuseipdb?.categories || [],
+        reports: results.abuseipdb?.comments?.map((comment: string) => ({ comment })) || [],
+        raw_data: results,
+      }
+
+      // Enviar a la API
+      const response = await fetch("/api/osint/ip-intelligence", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(dataToSave),
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        toast({
+          title: "Guardado exitoso",
+          description: "Los resultados se han guardado en la base de datos",
+        })
+
+        // Actualizar la lista de resultados guardados
+        fetchSavedResults()
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: result.error || "No se pudieron guardar los resultados",
+        })
+      }
+    } catch (error) {
+      console.error("Error al guardar en la base de datos:", error)
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudieron guardar los resultados",
+      })
+    }
   }
 
   function downloadResults() {
@@ -189,11 +291,22 @@ export function IpIntelligence() {
   return (
     <div className="space-y-6">
       <Card className="bg-gray-800 border-gray-700">
-        <CardHeader>
-          <CardTitle className="text-white">Inteligencia de IP</CardTitle>
-          <CardDescription className="text-gray-300">
-            Busca información sobre direcciones IP en múltiples fuentes
-          </CardDescription>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="text-white">Inteligencia de IP</CardTitle>
+            <CardDescription className="text-gray-300">
+              Busca información sobre direcciones IP en múltiples fuentes
+            </CardDescription>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowHistory(!showHistory)}
+            className="flex items-center gap-2"
+          >
+            <History className="h-4 w-4" />
+            Historial
+          </Button>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSearch} className="space-y-4">
@@ -276,6 +389,59 @@ export function IpIntelligence() {
               <Progress value={progress} className="h-2" />
             </div>
           )}
+
+          {/* Diálogo de historial */}
+          <Dialog open={showHistory} onOpenChange={setShowHistory}>
+            <DialogContent className="bg-gray-800 text-white border-gray-700">
+              <DialogHeader>
+                <DialogTitle>Historial de Búsquedas</DialogTitle>
+                <DialogDescription className="text-gray-300">
+                  Resultados guardados de análisis de IP previos
+                </DialogDescription>
+              </DialogHeader>
+
+              {loadingSaved ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+                </div>
+              ) : savedResults.length > 0 ? (
+                <div className="max-h-[400px] overflow-y-auto space-y-2">
+                  {savedResults.map((result) => (
+                    <div
+                      key={result.id}
+                      className="p-3 bg-gray-700 rounded-lg hover:bg-gray-600 cursor-pointer"
+                      onClick={() => loadSavedResult(result)}
+                    >
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <p className="font-medium">{result.ip_address}</p>
+                          <p className="text-sm text-gray-300">
+                            {result.country && `${result.city || ""} ${result.region || ""}, ${result.country}`}
+                          </p>
+                        </div>
+                        <Badge
+                          className={
+                            result.threat_level === "malicious"
+                              ? "bg-red-500/20 text-red-400"
+                              : result.threat_level === "suspicious"
+                                ? "bg-yellow-500/20 text-yellow-400"
+                                : "bg-green-500/20 text-green-400"
+                          }
+                        >
+                          {result.threat_level || "desconocido"}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-gray-400 mt-1">{new Date(result.created_at).toLocaleString()}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="py-8 text-center text-gray-400">
+                  <p>No hay resultados guardados</p>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
         </CardContent>
       </Card>
 

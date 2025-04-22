@@ -6,6 +6,7 @@ import { IpIntelligence } from "@/components/osint/ip-intelligence"
 import { PersonIntelligence } from "@/components/osint/person-intelligence"
 import { ThreatIntelligence } from "@/components/osint/threat-intelligence"
 import { OsintDashboard } from "@/components/osint/osint-dashboard"
+import { OsintAnalytics } from "@/components/osint/osint-analytics"
 
 export default function OsintPage() {
   return (
@@ -16,6 +17,8 @@ export default function OsintPage() {
       </div>
 
       <OsintDashboard />
+
+      <OsintAnalytics />
 
       <Tabs defaultValue="email" className="space-y-4">
         <TabsList className="bg-gray-800 p-1 w-full flex flex-wrap">
