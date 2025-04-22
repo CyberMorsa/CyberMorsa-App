@@ -1,17 +1,17 @@
-import { type NextRequest, NextResponse } from "next/server"
-import { verifyAuth } from "./lib/auth"
+import { NextResponse } from "next/server"
+import type { NextRequest } from "next/server"
 
-export async function middleware(request: NextRequest) {
+export function middleware(request: NextRequest) {
   // Exclude login page and API routes from middleware
   if (request.nextUrl.pathname.startsWith("/login") || request.nextUrl.pathname.startsWith("/api/")) {
     return NextResponse.next()
   }
 
-  // Check if user is authenticated
-  const user = await verifyAuth(request)
+  // Check if user is authenticated by looking for the auth-token cookie
+  const token = request.cookies.get("auth-token")?.value
 
   // If not authenticated, redirect to login
-  if (!user) {
+  if (!token) {
     const loginUrl = new URL("/login", request.url)
     return NextResponse.redirect(loginUrl)
   }
