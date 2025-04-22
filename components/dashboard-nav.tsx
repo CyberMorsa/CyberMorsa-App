@@ -71,7 +71,7 @@ export function DashboardNav({ user }: DashboardNavProps) {
         className="md:hidden fixed top-4 left-4 z-50 bg-gray-800 p-2 rounded-md"
         onClick={() => setIsOpen(!isOpen)}
       >
-        {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        {isOpen ? <X className="h-6 w-6 text-white" /> : <Menu className="h-6 w-6 text-white" />}
       </button>
 
       {/* Sidebar */}
@@ -83,8 +83,8 @@ export function DashboardNav({ user }: DashboardNavProps) {
         )}
       >
         <div className="p-4 border-b border-gray-700">
-          <h2 className="text-xl font-bold">CyberMorsa</h2>
-          <p className="text-sm text-gray-400">
+          <h2 className="text-xl font-bold text-white">CyberMorsa</h2>
+          <p className="text-sm text-gray-300">
             {user?.role === "admin" ? "Administrador" : "Invitado"}: {user?.username}
           </p>
         </div>
@@ -96,7 +96,7 @@ export function DashboardNav({ user }: DashboardNavProps) {
               href={item.href}
               className={cn(
                 "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
-                pathname === item.href ? "bg-gray-700 text-white" : "text-gray-400 hover:text-white hover:bg-gray-700",
+                pathname === item.href ? "bg-gray-700 text-white" : "text-gray-300 hover:text-white hover:bg-gray-700",
               )}
               onClick={() => setIsOpen(false)}
             >
