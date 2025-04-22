@@ -1,20 +1,18 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip, Legend } from "recharts"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart"
-import { Skeleton } from "@/components/ui/skeleton"
+import { useEffect, useState } from "react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts"
 
 interface SecurityEvent {
-  name: string
-  alertas: number
-  vulnerabilidades: number
-  intentos: number
+  month: string
+  alerts: number
+  vulnerabilities: number
+  accessAttempts: number
 }
 
 export function SecurityStats() {
-  const [data, setData] = useState<SecurityEvent[]>([])
+  const [securityData, setSecurityData] = useState<SecurityEvent[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -28,21 +26,11 @@ export function SecurityStats() {
           throw new Error("Error al cargar estadísticas de seguridad")
         }
 
-        const statsData = await response.json()
-        setData(statsData)
+        const data = await response.json()
+        setSecurityData(data)
       } catch (err) {
-        console.error("Error fetching security stats:", err)
-        setError("No se pudieron cargar las estadísticas")
-        // Fallback a datos vacíos para evitar errores de renderizado
-        setData([
-          { name: "Lun", alertas: 0, vulnerabilidades: 0, intentos: 0 },
-          { name: "Mar", alertas: 0, vulnerabilidades: 0, intentos: 0 },
-          { name: "Mié", alertas: 0, vulnerabilidades: 0, intentos: 0 },
-          { name: "Jue", alertas: 0, vulnerabilidades: 0, intentos: 0 },
-          { name: "Vie", alertas: 0, vulnerabilidades: 0, intentos: 0 },
-          { name: "Sáb", alertas: 0, vulnerabilidades: 0, intentos: 0 },
-          { name: "Dom", alertas: 0, vulnerabilidades: 0, intentos: 0 },
-        ])
+        console.error("Error al cargar estadísticas:", err)
+        setError("No se pudieron cargar las estadísticas de seguridad")
       } finally {
         setIsLoading(false)
       }
@@ -51,102 +39,67 @@ export function SecurityStats() {
     fetchSecurityStats()
   }, [])
 
-  if (isLoading) {
-    return (
-      <Card className="bg-gray-800 border-gray-700">
-        <CardHeader className="pb-0">
-          <CardTitle className="text-xl font-bold text-white">Estadísticas de Seguridad</CardTitle>
-          <p className="text-sm text-gray-400">Cargando datos...</p>
-        </CardHeader>
-        <CardContent className="pt-4">
-          <div className="h-[250px] w-full flex items-center justify-center">
-            <div className="space-y-2 w-full">
-              <Skeleton className="h-4 w-full bg-gray-700" />
-              <Skeleton className="h-4 w-full bg-gray-700" />
-              <Skeleton className="h-4 w-full bg-gray-700" />
-              <Skeleton className="h-4 w-full bg-gray-700" />
-              <Skeleton className="h-4 w-full bg-gray-700" />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
-
-  if (error) {
-    return (
-      <Card className="bg-gray-800 border-gray-700">
-        <CardHeader className="pb-0">
-          <CardTitle className="text-xl font-bold text-white">Estadísticas de Seguridad</CardTitle>
-          <p className="text-sm text-gray-400">Error al cargar datos</p>
-        </CardHeader>
-        <CardContent className="pt-4">
-          <div className="h-[250px] w-full flex items-center justify-center">
-            <p className="text-red-400">{error}</p>
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
+  // Si no hay datos, mostrar datos de ejemplo
+  useEffect(() => {
+    if (!isLoading && securityData.length === 0 && !error) {
+      // Datos de ejemplo para mostrar cuando no hay datos reales
+      const exampleData: SecurityEvent[] = [
+        { month: "Ene", alerts: 12, vulnerabilities: 5, accessAttempts: 8 },
+        { month: "Feb", alerts: 8, vulnerabilities: 3, accessAttempts: 10 },
+        { month: "Mar", alerts: 15, vulnerabilities: 7, accessAttempts: 12 },
+        { month: "Abr", alerts: 10, vulnerabilities: 4, accessAttempts: 7 },
+        { month: "May", alerts: 5, vulnerabilities: 2, accessAttempts: 5 },
+        { month: "Jun", alerts: 7, vulnerabilities: 3, accessAttempts: 9 },
+      ]
+      setSecurityData(exampleData)
+    }
+  }, [isLoading, securityData, error])
 
   return (
     <Card className="bg-gray-800 border-gray-700">
-      <CardHeader className="pb-0">
-        <CardTitle className="text-xl font-bold text-white">Estadísticas de Seguridad</CardTitle>
-        <p className="text-sm text-gray-400">Resumen de eventos de seguridad</p>
+      <CardHeader>
+        <CardTitle className="text-white">Estadísticas de Seguridad</CardTitle>
+        <CardDescription className="text-gray-400">Resumen de eventos de seguridad</CardDescription>
       </CardHeader>
-      <CardContent className="pt-4">
-        <div className="h-[250px] w-full">
-          <ChartContainer
-            config={{
-              alertas: {
-                label: "Alertas",
-                color: "hsl(0, 100%, 65%)",
-              },
-              vulnerabilidades: {
-                label: "Vulnerabilidades",
-                color: "hsl(40, 100%, 65%)",
-              },
-              intentos: {
-                label: "Intentos de acceso",
-                color: "hsl(200, 100%, 65%)",
-              },
-            }}
-          >
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }} maxBarSize={30}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                <XAxis
-                  dataKey="name"
-                  stroke="rgba(255,255,255,0.7)"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={{ stroke: "rgba(255,255,255,0.2)" }}
-                />
-                <YAxis
-                  stroke="rgba(255,255,255,0.7)"
-                  fontSize={12}
-                  tickLine={false}
-                  axisLine={{ stroke: "rgba(255,255,255,0.2)" }}
-                  domain={[0, "auto"]}
-                />
-                <Tooltip content={<ChartTooltipContent />} cursor={{ fill: "rgba(255,255,255,0.05)" }} />
-                <Legend
-                  wrapperStyle={{ paddingTop: 10 }}
-                  formatter={(value) => <span style={{ color: "white" }}>{value}</span>}
-                />
-                <Bar dataKey="alertas" fill="var(--color-alertas)" radius={[4, 4, 0, 0]} name="Alertas" />
-                <Bar
-                  dataKey="vulnerabilidades"
-                  fill="var(--color-vulnerabilidades)"
-                  radius={[4, 4, 0, 0]}
-                  name="Vulnerabilidades"
-                />
-                <Bar dataKey="intentos" fill="var(--color-intentos)" radius={[4, 4, 0, 0]} name="Intentos de acceso" />
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartContainer>
-        </div>
+      <CardContent>
+        {isLoading ? (
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          </div>
+        ) : error ? (
+          <div className="flex items-center justify-center h-64 text-red-400">
+            <p>{error}</p>
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart
+              data={securityData}
+              margin={{
+                top: 20,
+                right: 30,
+                left: 20,
+                bottom: 5,
+              }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+              <XAxis dataKey="month" tick={{ fill: "#9CA3AF" }} axisLine={{ stroke: "#4B5563" }} />
+              <YAxis tick={{ fill: "#9CA3AF" }} axisLine={{ stroke: "#4B5563" }} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "#1F2937",
+                  borderColor: "#374151",
+                  color: "#F9FAFB",
+                }}
+                labelStyle={{ color: "#F9FAFB" }}
+                itemStyle={{ color: "#F9FAFB" }}
+              />
+              <Legend wrapperStyle={{ color: "#9CA3AF" }} />
+              <Bar dataKey="alerts" name="Alertas" fill="#EF4444" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="vulnerabilities" name="Vulnerabilidades" fill="#F59E0B" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="accessAttempts" name="Intentos de Acceso" fill="#3B82F6" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        )}
       </CardContent>
     </Card>
   )

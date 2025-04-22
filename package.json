@@ -62,8 +62,9 @@
     "@auth/core": "latest",
     "nodemailer": "latest",
     "pg": "latest",
+    "jose": "latest",
     "next-auth": "latest",
-    "jose": "latest"
+    "axios": "latest"
   },
   "devDependencies": {
     "@types/node": "^22",

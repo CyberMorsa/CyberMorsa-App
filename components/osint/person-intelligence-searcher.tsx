@@ -28,7 +28,9 @@ import {
   Eye,
   Plus,
   Loader2,
+  Key,
 } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 // Interfaces para tipado
 interface SocialProfile {
@@ -76,10 +78,12 @@ interface PersonData {
 }
 
 export function PersonIntelligenceSearcher() {
+  const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [personData, setPersonData] = useState<PersonData | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [needsApiKeys, setNeedsApiKeys] = useState(false)
   const [searchHistory, setSearchHistory] = useState<string[]>([])
 
   // Función para detectar el tipo de consulta
@@ -107,6 +111,7 @@ export function PersonIntelligenceSearcher() {
     try {
       setIsLoading(true)
       setError(null)
+      setNeedsApiKeys(false)
 
       // Realizamos la petición a nuestra API
       const response = await fetch("/api/osint/person-intelligence", {
@@ -120,11 +125,15 @@ export function PersonIntelligenceSearcher() {
         }),
       })
 
-      if (!response.ok) {
-        throw new Error("Error al realizar la búsqueda OSINT")
-      }
-
       const data = await response.json()
+
+      if (!response.ok) {
+        if (data.needsApiKeys) {
+          setNeedsApiKeys(true)
+          throw new Error("Se requieren claves API para realizar búsquedas OSINT reales")
+        }
+        throw new Error(data.error || "Error al realizar la búsqueda OSINT")
+      }
 
       // Guardamos en el historial
       if (!searchHistory.includes(query)) {
@@ -134,7 +143,7 @@ export function PersonIntelligenceSearcher() {
       setPersonData(data)
     } catch (err) {
       console.error("Error en la búsqueda OSINT:", err)
-      setError("Error al procesar la solicitud. Verifica tu conexión e inténtalo de nuevo.")
+      setError((err as Error).message || "Error al procesar la solicitud. Verifica tu conexión e inténtalo de nuevo.")
     } finally {
       setIsLoading(false)
     }
@@ -157,6 +166,10 @@ export function PersonIntelligenceSearcher() {
       default:
         return "bg-gray-500/20 text-gray-400 border-gray-500/50"
     }
+  }
+
+  const navigateToApiSettings = () => {
+    router.push("/dashboard/settings/api-keys")
   }
 
   return (
@@ -219,7 +232,25 @@ export function PersonIntelligenceSearcher() {
             </div>
           )}
 
-          {error && (
+          {needsApiKeys && (
+            <Alert className="mt-4 bg-yellow-900/20 border-yellow-900/50 text-yellow-400">
+              <Key className="h-4 w-4" />
+              <AlertTitle>Se requieren claves API</AlertTitle>
+              <AlertDescription className="flex flex-col gap-2">
+                <p>Para realizar búsquedas OSINT reales, necesitas configurar al menos una clave API.</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="self-start border-yellow-500/50 text-yellow-400 hover:bg-yellow-900/20"
+                  onClick={navigateToApiSettings}
+                >
+                  Configurar claves API
+                </Button>
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {error && !needsApiKeys && (
             <Alert variant="destructive" className="mt-4 bg-red-900/20 border-red-900/50 text-red-400">
               <AlertTriangle className="h-4 w-4" />
               <AlertTitle>Error</AlertTitle>
