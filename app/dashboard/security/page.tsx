@@ -1,85 +1,98 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
-import { Shield, AlertTriangle, CheckCircle, RefreshCw } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { SecurityScanner } from "@/components/security/security-scanner"
 import { VulnerabilityChecker } from "@/components/security/vulnerability-checker"
 import { PasswordAudit } from "@/components/security/password-audit"
+import { NetworkScanner } from "@/components/security/network-scanner"
+import { SecurityReport } from "@/components/security/security-report"
 
 export default function SecurityPage() {
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold mb-2 text-white">Seguridad</h1>
-        <p className="text-gray-200">Herramientas y análisis de seguridad para tus necesidades.</p>
+        <p className="text-gray-400">Herramientas para analizar y mejorar la seguridad de tu infraestructura.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="bg-gray-800 border-gray-700">
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-white">
-              <Shield className="h-5 w-5 text-green-400" />
-              <span>Estado de Seguridad</span>
-            </CardTitle>
-            <CardDescription className="text-gray-300">Estado general del sistema</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4 mt-2">
-              <div className="flex items-center gap-2">
-                <CheckCircle className="h-5 w-5 text-green-500" />
-                <span className="text-sm text-white">Autenticación segura</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle className="h-5 w-5 text-green-500" />
-                <span className="text-sm text-white">Variables de entorno protegidas</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5 text-yellow-500" />
-                <span className="text-sm text-white">Actualización de seguridad pendiente</span>
-              </div>
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Button className="w-full" variant="outline">
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Actualizar estado
-            </Button>
-          </CardFooter>
-        </Card>
+      <Tabs defaultValue="scanner" className="space-y-4">
+        <TabsList className="bg-gray-800 p-1">
+          <TabsTrigger value="scanner" className="data-[state=active]:bg-gray-700">
+            Escáner
+          </TabsTrigger>
+          <TabsTrigger value="vulnerabilities" className="data-[state=active]:bg-gray-700">
+            Vulnerabilidades
+          </TabsTrigger>
+          <TabsTrigger value="passwords" className="data-[state=active]:bg-gray-700">
+            Contraseñas
+          </TabsTrigger>
+          <TabsTrigger value="network" className="data-[state=active]:bg-gray-700">
+            Red
+          </TabsTrigger>
+          <TabsTrigger value="report" className="data-[state=active]:bg-gray-700">
+            Informe
+          </TabsTrigger>
+        </TabsList>
 
-        <Card className="bg-gray-800 border-gray-700 md:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-white">Análisis de Seguridad</CardTitle>
-            <CardDescription className="text-gray-300">Resultados del último análisis de seguridad</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <SecurityScanner />
-          </CardContent>
-        </Card>
-      </div>
+        <TabsContent value="scanner" className="mt-0">
+          <Card className="bg-gray-800 border-gray-700">
+            <CardHeader>
+              <CardTitle className="text-white">Escáner de Seguridad</CardTitle>
+              <CardDescription>Analiza la seguridad de tu sistema y detecta posibles vulnerabilidades</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <SecurityScanner />
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="bg-gray-800 border-gray-700">
-          <CardHeader>
-            <CardTitle className="text-white">Verificación de Vulnerabilidades</CardTitle>
-            <CardDescription className="text-gray-300">
-              Comprueba si tus sistemas tienen vulnerabilidades conocidas
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <VulnerabilityChecker />
-          </CardContent>
-        </Card>
+        <TabsContent value="vulnerabilities" className="mt-0">
+          <Card className="bg-gray-800 border-gray-700">
+            <CardHeader>
+              <CardTitle className="text-white">Verificador de Vulnerabilidades</CardTitle>
+              <CardDescription>Comprueba si tu sistema tiene vulnerabilidades conocidas</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <VulnerabilityChecker />
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-        <Card className="bg-gray-800 border-gray-700">
-          <CardHeader>
-            <CardTitle className="text-white">Auditoría de Contraseñas</CardTitle>
-            <CardDescription className="text-gray-300">Verifica la seguridad de tus contraseñas</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <PasswordAudit />
-          </CardContent>
-        </Card>
-      </div>
+        <TabsContent value="passwords" className="mt-0">
+          <Card className="bg-gray-800 border-gray-700">
+            <CardHeader>
+              <CardTitle className="text-white">Auditoría de Contraseñas</CardTitle>
+              <CardDescription>Verifica la fortaleza de tus contraseñas y si han sido comprometidas</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <PasswordAudit />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="network" className="mt-0">
+          <Card className="bg-gray-800 border-gray-700">
+            <CardHeader>
+              <CardTitle className="text-white">Escáner de Red</CardTitle>
+              <CardDescription>Analiza tu red para detectar dispositivos y servicios</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <NetworkScanner />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="report" className="mt-0">
+          <Card className="bg-gray-800 border-gray-700">
+            <CardHeader>
+              <CardTitle className="text-white">Informe de Seguridad</CardTitle>
+              <CardDescription>Resumen completo del estado de seguridad de tu sistema</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <SecurityReport />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

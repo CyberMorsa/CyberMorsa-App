@@ -236,6 +236,111 @@ export function DatabaseQueryTool({ initialQuery = "" }: DatabaseQueryToolProps)
               },
             ],
           })
+        } else if (queryLower.includes("ip_intelligence")) {
+          setResults({
+            columns: ["id", "ip_address", "country", "city", "isp", "is_proxy", "is_vpn", "is_tor", "threat_level"],
+            rows: [
+              {
+                id: 1,
+                ip_address: "192.168.1.1",
+                country: "US",
+                city: "San Francisco",
+                isp: "Cloudflare, Inc.",
+                is_proxy: false,
+                is_vpn: false,
+                is_tor: false,
+                threat_level: "low",
+              },
+              {
+                id: 2,
+                ip_address: "10.0.0.1",
+                country: "RU",
+                city: "Moscow",
+                isp: "Unknown",
+                is_proxy: true,
+                is_vpn: false,
+                is_tor: false,
+                threat_level: "high",
+              },
+              {
+                id: 3,
+                ip_address: "172.16.0.1",
+                country: "DE",
+                city: "Berlin",
+                isp: "Deutsche Telekom AG",
+                is_proxy: false,
+                is_vpn: true,
+                is_tor: false,
+                threat_level: "medium",
+              },
+            ],
+          })
+        } else if (queryLower.includes("person_intelligence")) {
+          setResults({
+            columns: ["id", "name", "age", "location", "occupation", "email", "risk_score"],
+            rows: [
+              {
+                id: 1,
+                name: "John Smith",
+                age: 35,
+                location: "New York, USA",
+                occupation: "Software Engineer",
+                email: "john.smith@example.com",
+                risk_score: 25,
+              },
+              {
+                id: 2,
+                name: "Jane Doe",
+                age: 42,
+                location: "London, UK",
+                occupation: "Marketing Director",
+                email: "jane.doe@test.org",
+                risk_score: 15,
+              },
+              {
+                id: 3,
+                name: "Bob Johnson",
+                age: 28,
+                location: "Toronto, Canada",
+                occupation: "Data Analyst",
+                email: "bob.johnson@company.net",
+                risk_score: 75,
+              },
+            ],
+          })
+        } else if (queryLower.includes("threat_intelligence")) {
+          setResults({
+            columns: ["id", "indicator", "type", "verdict", "confidence", "malware_family", "first_seen"],
+            rows: [
+              {
+                id: 1,
+                indicator: "malware.example.com",
+                type: "url",
+                verdict: "malicious",
+                confidence: 95,
+                malware_family: "Emotet",
+                first_seen: "2023-01-15",
+              },
+              {
+                id: 2,
+                indicator: "5f4dcc3b5aa765d61d8327deb882cf99",
+                type: "hash",
+                verdict: "suspicious",
+                confidence: 75,
+                malware_family: "Unknown",
+                first_seen: "2023-02-20",
+              },
+              {
+                id: 3,
+                indicator: "evil.phishing-site.com",
+                type: "url",
+                verdict: "malicious",
+                confidence: 98,
+                malware_family: "Phishing",
+                first_seen: "2023-03-05",
+              },
+            ],
+          })
         } else {
           setResults({
             columns: ["id", "name", "value"],

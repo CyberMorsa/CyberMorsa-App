@@ -1,130 +1,221 @@
 "use client"
 
-import type React from "react"
-
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { logout } from "@/lib/auth"
-import { useRouter } from "next/navigation"
-import { Home, Shield, Database, Search, Activity, Settings, LogOut, Menu, X, PenToolIcon as Tool } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { useState } from "react"
 import { cn } from "@/lib/utils"
+import {
+  LayoutDashboard,
+  Shield,
+  Database,
+  Search,
+  Activity,
+  Settings,
+  Wrench,
+  ChevronDown,
+  ChevronRight,
+  AlertTriangle,
+  Lock,
+  Wifi,
+  Globe,
+  User,
+  Mail,
+  FileText,
+} from "lucide-react"
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 
 interface NavItem {
-  label: string
+  title: string
   href: string
-  icon: React.ReactNode
+  icon: any
+  badge?: string
+  badgeColor?: string
+  submenu?: NavItem[]
 }
 
-interface DashboardNavProps {
-  user: { username: string; role: string } | null
-}
-
-export function DashboardNav({ user }: DashboardNavProps) {
+export function DashboardNav() {
   const pathname = usePathname()
-  const router = useRouter()
-  const [isOpen, setIsOpen] = useState(false)
+  const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({
+    "/dashboard/osint": true,
+    "/dashboard/security": true,
+  })
 
   const navItems: NavItem[] = [
     {
-      label: "Dashboard",
+      title: "Dashboard",
       href: "/dashboard",
-      icon: <Home className="h-5 w-5" />,
+      icon: LayoutDashboard,
     },
     {
-      label: "Seguridad",
+      title: "Seguridad",
       href: "/dashboard/security",
-      icon: <Shield className="h-5 w-5" />,
+      icon: Shield,
+      badge: "3",
+      badgeColor: "bg-red-500",
+      submenu: [
+        {
+          title: "Escáner",
+          href: "/dashboard/security?tab=scanner",
+          icon: Search,
+        },
+        {
+          title: "Vulnerabilidades",
+          href: "/dashboard/security?tab=vulnerabilities",
+          icon: AlertTriangle,
+          badge: "3",
+          badgeColor: "bg-red-500",
+        },
+        {
+          title: "Contraseñas",
+          href: "/dashboard/security?tab=passwords",
+          icon: Lock,
+        },
+        {
+          title: "Red",
+          href: "/dashboard/security?tab=network",
+          icon: Wifi,
+        },
+        {
+          title: "Informe",
+          href: "/dashboard/security?tab=report",
+          icon: FileText,
+        },
+      ],
     },
     {
-      label: "Base de Datos",
-      href: "/dashboard/database",
-      icon: <Database className="h-5 w-5" />,
-    },
-    {
-      label: "OSINT",
+      title: "OSINT",
       href: "/dashboard/osint",
-      icon: <Search className="h-5 w-5" />,
+      icon: Search,
+      submenu: [
+        {
+          title: "Dashboard OSINT",
+          href: "/dashboard/osint",
+          icon: LayoutDashboard,
+        },
+        {
+          title: "Email Intelligence",
+          href: "/dashboard/osint/email-intelligence",
+          icon: Mail,
+        },
+        {
+          title: "IP Intelligence",
+          href: "/dashboard/osint/ip-intelligence",
+          icon: Globe,
+        },
+        {
+          title: "Person Intelligence",
+          href: "/dashboard/osint/person-intelligence",
+          icon: User,
+        },
+        {
+          title: "Threat Intelligence",
+          href: "/dashboard/osint/threat-intelligence",
+          icon: AlertTriangle,
+        },
+      ],
     },
     {
-      label: "Actividades",
+      title: "Base de Datos",
+      href: "/dashboard/database",
+      icon: Database,
+    },
+    {
+      title: "Actividades",
       href: "/dashboard/activities",
-      icon: <Activity className="h-5 w-5" />,
+      icon: Activity,
     },
     {
-      label: "Herramientas",
+      title: "Herramientas",
       href: "/dashboard/tools",
-      icon: <Tool className="h-5 w-5" />,
+      icon: Wrench,
     },
     {
-      label: "Configuración",
+      title: "Configuración",
       href: "/dashboard/settings",
-      icon: <Settings className="h-5 w-5" />,
+      icon: Settings,
     },
   ]
 
-  async function handleLogout() {
-    await logout()
-    router.push("/login")
+  const toggleSubmenu = (href: string) => {
+    setExpandedMenus((prev) => ({
+      ...prev,
+      [href]: !prev[href],
+    }))
+  }
+
+  const isActive = (href: string) => {
+    if (href === "/dashboard") {
+      return pathname === href
+    }
+    return pathname.startsWith(href)
   }
 
   return (
-    <>
-      {/* Mobile menu button */}
-      <button
-        className="md:hidden fixed top-4 left-4 z-50 bg-gray-800 p-2 rounded-md"
-        onClick={() => setIsOpen(!isOpen)}
-      >
-        {isOpen ? <X className="h-6 w-6 text-white" /> : <Menu className="h-6 w-6 text-white" />}
-      </button>
-
-      {/* Sidebar */}
-      <aside
-        className={cn(
-          "bg-gray-800 w-64 flex-shrink-0 flex flex-col transition-all duration-300 ease-in-out",
-          isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
-          "fixed md:static inset-y-0 z-40 md:z-0",
-        )}
-      >
-        <div className="p-4 border-b border-gray-700">
-          <h2 className="text-xl font-bold text-white">CyberMorsa</h2>
-          <p className="text-sm text-gray-300">
-            {user?.role === "admin" ? "Administrador" : "Invitado"}: {user?.username}
-          </p>
-        </div>
-
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-          {navItems.map((item) => (
+    <nav className="space-y-1">
+      {navItems.map((item) => (
+        <div key={item.href} className="space-y-1">
+          {item.submenu ? (
+            <>
+              <Button
+                variant="ghost"
+                className={cn(
+                  "w-full justify-between hover:bg-gray-700 hover:text-white",
+                  isActive(item.href) ? "bg-gray-700 text-white" : "text-gray-400",
+                )}
+                onClick={() => toggleSubmenu(item.href)}
+              >
+                <div className="flex items-center">
+                  <item.icon className="mr-2 h-5 w-5" />
+                  {item.title}
+                  {item.badge && (
+                    <Badge className={cn("ml-2 text-xs", item.badgeColor || "bg-blue-500")}>{item.badge}</Badge>
+                  )}
+                </div>
+                {expandedMenus[item.href] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              </Button>
+              {expandedMenus[item.href] && (
+                <div className="pl-8 space-y-1">
+                  {item.submenu.map((subItem) => (
+                    <Link
+                      key={subItem.href}
+                      href={subItem.href}
+                      className={cn(
+                        "flex items-center text-sm px-3 py-2 rounded-md hover:bg-gray-700 hover:text-white",
+                        pathname === subItem.href || pathname.includes(subItem.href.split("?")[0])
+                          ? "bg-gray-700 text-white"
+                          : "text-gray-400",
+                      )}
+                    >
+                      <subItem.icon className="mr-2 h-4 w-4" />
+                      {subItem.title}
+                      {subItem.badge && (
+                        <Badge className={cn("ml-2 text-xs", subItem.badgeColor || "bg-blue-500")}>
+                          {subItem.badge}
+                        </Badge>
+                      )}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </>
+          ) : (
             <Link
-              key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
-                pathname === item.href ? "bg-gray-700 text-white" : "text-gray-300 hover:text-white hover:bg-gray-700",
+                "flex items-center justify-between px-3 py-2 rounded-md hover:bg-gray-700 hover:text-white",
+                isActive(item.href) ? "bg-gray-700 text-white" : "text-gray-400",
               )}
-              onClick={() => setIsOpen(false)}
             >
-              {item.icon}
-              <span>{item.label}</span>
+              <div className="flex items-center">
+                <item.icon className="mr-2 h-5 w-5" />
+                {item.title}
+              </div>
+              {item.badge && <Badge className={cn("text-xs", item.badgeColor || "bg-blue-500")}>{item.badge}</Badge>}
             </Link>
-          ))}
-        </nav>
-
-        <div className="p-4 border-t border-gray-700">
-          <Button
-            variant="outline"
-            className="w-full flex items-center gap-2 text-red-400 hover:text-red-300 hover:bg-gray-700 border-gray-700"
-            onClick={handleLogout}
-          >
-            <LogOut className="h-4 w-4" />
-            <span>Cerrar Sesión</span>
-          </Button>
+          )}
         </div>
-      </aside>
-
-      {/* Overlay for mobile */}
-      {isOpen && <div className="fixed inset-0 bg-black/50 z-30 md:hidden" onClick={() => setIsOpen(false)} />}
-    </>
+      ))}
+    </nav>
   )
 }

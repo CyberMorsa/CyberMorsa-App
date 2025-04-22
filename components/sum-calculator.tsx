@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Plus, Trash, RotateCcw } from "lucide-react"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 export function SumCalculator() {
   const [title, setTitle] = useState("Calculadora de Suma")
@@ -13,6 +13,7 @@ export function SumCalculator() {
     { id: "item-2", value: "", numValue: 0 },
   ])
   const [total, setTotal] = useState(0)
+  const [steps, setSteps] = useState<{ values: number[]; subtotal: number }[]>([])
 
   // Cargar datos guardados al montar el componente
   useEffect(() => {
@@ -24,10 +25,22 @@ export function SumCalculator() {
     }
   }, [])
 
-  // Calcular el total cuando cambian los valores
+  // Calcular el total y los pasos cuando cambian los valores
   useEffect(() => {
-    const sum = items.reduce((acc, item) => acc + item.numValue, 0)
-    setTotal(sum)
+    const validItems = items.filter((item) => item.numValue > 0)
+    let subtotal = 0
+    const newSteps: { values: number[]; subtotal: number }[] = []
+
+    validItems.forEach((item) => {
+      subtotal += item.numValue
+      newSteps.push({
+        values: [...validItems.filter((i) => i.numValue > 0).map((i) => i.numValue)],
+        subtotal,
+      })
+    })
+
+    setSteps(newSteps)
+    setTotal(subtotal)
   }, [items])
 
   // Guardar datos cuando cambian
@@ -66,8 +79,8 @@ export function SumCalculator() {
   }
 
   return (
-    <Card className="w-full bg-gray-800 border-gray-700">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
+    <div className="space-y-6">
+      <div className="space-y-2">
         <Input
           type="text"
           placeholder="Título de la calculadora"
@@ -75,55 +88,100 @@ export function SumCalculator() {
           onChange={(e) => setTitle(e.target.value)}
           className="text-xl font-bold bg-gray-700 border-gray-600 text-white"
         />
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="bg-gray-700 p-4 rounded-lg">
+      </div>
+
+      <Card className="bg-gray-700 border-gray-600">
+        <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <span className="text-lg font-medium text-white">Total:</span>
             <span className="text-2xl font-bold text-white">
               {total.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
-        </div>
+        </CardContent>
+      </Card>
 
-        <div className="space-y-2">
-          {items.map((item, index) => (
-            <div key={item.id} className="flex items-center gap-2">
-              <div className="w-10 text-center text-gray-400">{index + 1}.</div>
-              <Input
-                type="text"
-                placeholder="0.00"
-                value={item.value}
-                onChange={(e) => updateItemValue(item.id, e.target.value)}
-                className="bg-gray-700 border-gray-600 text-white text-right"
-              />
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => removeItem(item.id)}
-                className="text-gray-400 hover:text-red-400 hover:bg-gray-700"
-                disabled={items.length === 1}
-              >
-                <Trash className="h-4 w-4" />
-              </Button>
+      {steps.length > 0 && (
+        <Card className="bg-gray-700 border-gray-600">
+          <CardHeader>
+            <CardTitle className="text-white text-lg">Pasos de cálculo</CardTitle>
+          </CardHeader>
+          <CardContent className="p-4">
+            <div className="space-y-2">
+              {steps.map((step, index) => (
+                <div key={index} className="bg-gray-800 p-3 rounded-lg">
+                  <div className="flex items-center text-sm">
+                    <span className="text-gray-300 mr-2">Paso {index + 1}:</span>
+                    {index === 0 ? (
+                      <span className="text-white">
+                        {step.values[0].toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </span>
+                    ) : (
+                      <>
+                        <span className="text-white">
+                          {steps[index - 1].subtotal.toLocaleString("es-ES", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
+                        </span>
+                        <span className="text-green-400 mx-2">+</span>
+                        <span className="text-white">
+                          {step.values[index].toLocaleString("es-ES", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
+                        </span>
+                      </>
+                    )}
+                    <span className="text-gray-300 mx-2">=</span>
+                    <span className="text-green-400 font-bold">
+                      {step.subtotal.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </CardContent>
+        </Card>
+      )}
 
-        <div className="flex gap-2">
-          <Button
-            onClick={addItem}
-            variant="outline"
-            className="w-full border-dashed border-gray-600 text-gray-300 hover:bg-gray-700"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Añadir fila
-          </Button>
-          <Button onClick={resetCalculator} variant="outline" className="border-gray-600 text-white hover:bg-gray-700">
-            <RotateCcw className="h-4 w-4" />
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+      <div className="space-y-2">
+        {items.map((item, index) => (
+          <div key={item.id} className="flex items-center gap-2">
+            <div className="w-10 text-center text-gray-400">{index + 1}.</div>
+            <Input
+              type="text"
+              placeholder="0.00"
+              value={item.value}
+              onChange={(e) => updateItemValue(item.id, e.target.value)}
+              className="bg-gray-700 border-gray-600 text-white text-right"
+            />
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => removeItem(item.id)}
+              className="text-gray-400 hover:text-red-400 hover:bg-gray-700"
+              disabled={items.length === 1}
+            >
+              <Trash className="h-4 w-4" />
+            </Button>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex gap-2">
+        <Button
+          onClick={addItem}
+          variant="outline"
+          className="w-full border-dashed border-gray-600 text-gray-300 hover:bg-gray-700"
+        >
+          <Plus className="mr-2 h-4 w-4" />
+          Añadir fila
+        </Button>
+        <Button onClick={resetCalculator} variant="outline" className="border-gray-600 text-white hover:bg-gray-700">
+          <RotateCcw className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
   )
 }

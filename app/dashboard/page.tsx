@@ -1,122 +1,185 @@
-import { verifyAuth } from "@/lib/auth"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Shield, Database, Search, Activity } from "lucide-react"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Progress } from "@/components/ui/progress"
+import { SecurityScoreCard } from "@/components/security/security-score-card"
+import { RecentActivities } from "@/components/dashboard/recent-activities"
+import { ThreatMap } from "@/components/dashboard/threat-map"
+import { SecurityStats } from "@/components/dashboard/security-stats"
+import { AlertCircle, ArrowRight, Shield, Database, Search } from "lucide-react"
 import Link from "next/link"
 
-export default async function DashboardPage() {
-  const user = await verifyAuth()
-
+export default function DashboardPage() {
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold mb-2 text-white">Panel de Control</h1>
-        <p className="text-gray-200">Bienvenido, {user?.username}. Accede a todas tus herramientas desde aquí.</p>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold mb-1 text-white">Dashboard</h1>
+          <p className="text-gray-400">Bienvenido a CyberMorsa - Tu plataforma de ciberseguridad</p>
+        </div>
+        <div className="flex gap-2">
+          <Button asChild>
+            <Link href="/dashboard/security">
+              <Shield className="mr-2 h-4 w-4" />
+              Análisis de Seguridad
+            </Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href="/dashboard/osint">
+              <Search className="mr-2 h-4 w-4" />
+              OSINT
+            </Link>
+          </Button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Link href="/dashboard/security" className="block">
-          <Card className="bg-gray-800 border-gray-700 hover:bg-gray-700 transition-colors h-full">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-white">
-                <Shield className="h-5 w-5 text-blue-400" />
-                <span>Seguridad</span>
-              </CardTitle>
-              <CardDescription className="text-gray-300">Herramientas de seguridad</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-200">Accede a herramientas de análisis de seguridad y monitoreo.</p>
-            </CardContent>
-          </Card>
-        </Link>
+      <Alert variant="destructive" className="bg-red-900/20 border-red-900">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Alerta de Seguridad</AlertTitle>
+        <AlertDescription>
+          Se han detectado 3 vulnerabilidades críticas en tu infraestructura. Revisa el informe de seguridad para más
+          detalles.
+        </AlertDescription>
+      </Alert>
 
-        <Link href="/dashboard/database" className="block">
-          <Card className="bg-gray-800 border-gray-700 hover:bg-gray-700 transition-colors h-full">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-white">
-                <Database className="h-5 w-5 text-green-400" />
-                <span>Base de Datos</span>
-              </CardTitle>
-              <CardDescription className="text-gray-300">Gestión de datos</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-200">Administra tu base de datos y consulta información almacenada.</p>
-            </CardContent>
-          </Card>
-        </Link>
-
-        <Link href="/dashboard/osint" className="block">
-          <Card className="bg-gray-800 border-gray-700 hover:bg-gray-700 transition-colors h-full">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-white">
-                <Search className="h-5 w-5 text-purple-400" />
-                <span>OSINT</span>
-              </CardTitle>
-              <CardDescription className="text-gray-300">Inteligencia de fuentes abiertas</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-200">Herramientas para recolección y análisis de información pública.</p>
-            </CardContent>
-          </Card>
-        </Link>
-
-        <Link href="/dashboard/activities" className="block">
-          <Card className="bg-gray-800 border-gray-700 hover:bg-gray-700 transition-colors h-full">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-white">
-                <Activity className="h-5 w-5 text-red-400" />
-                <span>Actividades</span>
-              </CardTitle>
-              <CardDescription className="text-gray-300">Seguimiento de actividades</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-200">Lleva un registro de actividades y puntuaciones personalizadas.</p>
-            </CardContent>
-          </Card>
-        </Link>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="bg-gray-800 border-gray-700 lg:col-span-2">
-          <CardHeader>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <SecurityScoreCard />
+        <Card className="bg-gray-800 border-gray-700 col-span-2">
+          <CardHeader className="pb-2">
             <CardTitle className="text-white">Actividad Reciente</CardTitle>
-            <CardDescription className="text-gray-300">Últimas acciones realizadas en la plataforma</CardDescription>
+            <CardDescription>Últimas actividades detectadas en tu red</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="flex items-center gap-4 border-b border-gray-700 pb-4">
-                  <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                  <div>
-                    <p className="text-sm font-medium text-white">Acción de ejemplo #{i}</p>
-                    <p className="text-xs text-gray-300">
-                      Hace {i} hora{i !== 1 ? "s" : ""}
-                    </p>
-                  </div>
-                </div>
-              ))}
+            <RecentActivities />
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card className="bg-gray-800 border-gray-700">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-white">Estadísticas de Seguridad</CardTitle>
+            <CardDescription>Resumen de eventos de seguridad</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <SecurityStats />
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gray-800 border-gray-700">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-white">Mapa de Amenazas</CardTitle>
+            <CardDescription>Distribución geográfica de amenazas detectadas</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ThreatMap />
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="bg-gray-800 border-gray-700">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-white">Estado de APIs</CardTitle>
+            <CardDescription>Conexión con servicios externos</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-300">SecurityTrails</span>
+                <Badge className="bg-green-500/20 text-green-400">Conectado</Badge>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-300">Shodan</span>
+                <Badge className="bg-green-500/20 text-green-400">Conectado</Badge>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-300">AlienVault OTX</span>
+                <Badge className="bg-red-500/20 text-red-400">Desconectado</Badge>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-300">VirusTotal</span>
+                <Badge className="bg-yellow-500/20 text-yellow-400">Limitado</Badge>
+              </div>
+            </div>
+            <div className="mt-4">
+              <Button variant="outline" size="sm" className="w-full" asChild>
+                <Link href="/dashboard/settings">Configurar APIs</Link>
+              </Button>
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-gray-800 border-gray-700">
-          <CardHeader>
-            <CardTitle className="text-white">Estado del Sistema</CardTitle>
-            <CardDescription className="text-gray-300">Información sobre el estado actual</CardDescription>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-white">Base de Datos</CardTitle>
+            <CardDescription>Estado de la base de datos</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-white">Base de datos</span>
-                <span className="text-xs px-2 py-1 bg-green-500/20 text-green-400 rounded-full">Activa</span>
+            <div className="space-y-3">
+              <div>
+                <div className="flex justify-between mb-1">
+                  <span className="text-sm text-gray-300">Uso de almacenamiento</span>
+                  <span className="text-sm text-gray-300">68%</span>
+                </div>
+                <Progress value={68} className="h-2" />
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-white">APIs</span>
-                <span className="text-xs px-2 py-1 bg-green-500/20 text-green-400 rounded-full">Conectadas</span>
+              <div>
+                <div className="flex justify-between mb-1">
+                  <span className="text-sm text-gray-300">Registros totales</span>
+                  <span className="text-sm text-white">12,458</span>
+                </div>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-white">Almacenamiento</span>
-                <span className="text-xs px-2 py-1 bg-blue-500/20 text-blue-400 rounded-full">70% libre</span>
+              <div>
+                <div className="flex justify-between mb-1">
+                  <span className="text-sm text-gray-300">Última actualización</span>
+                  <span className="text-sm text-white">Hace 5 minutos</span>
+                </div>
               </div>
+            </div>
+            <div className="mt-4">
+              <Button variant="outline" size="sm" className="w-full" asChild>
+                <Link href="/dashboard/database">
+                  <Database className="mr-2 h-4 w-4" />
+                  Gestionar Base de Datos
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gray-800 border-gray-700">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-white">Acciones Rápidas</CardTitle>
+            <CardDescription>Accesos directos a funciones comunes</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <Button variant="outline" size="sm" className="w-full justify-between" asChild>
+                <Link href="/dashboard/osint/email-intelligence">
+                  Análisis de Email
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button variant="outline" size="sm" className="w-full justify-between" asChild>
+                <Link href="/dashboard/osint/ip-intelligence">
+                  Análisis de IP
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button variant="outline" size="sm" className="w-full justify-between" asChild>
+                <Link href="/dashboard/osint/domain-scanner">
+                  Escaneo de Dominio
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button variant="outline" size="sm" className="w-full justify-between" asChild>
+                <Link href="/dashboard/security/vulnerability-checker">
+                  Verificar Vulnerabilidades
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
             </div>
           </CardContent>
         </Card>

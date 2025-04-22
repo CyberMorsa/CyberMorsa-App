@@ -7,7 +7,7 @@ import { DatabaseStats } from "@/components/database/database-stats"
 import { DatabaseQueryTool } from "@/components/database/database-query-tool"
 import { DatabaseSchema } from "@/components/database/database-schema"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Copy, Database, Shield, User, Mail, Globe } from "lucide-react"
+import { Copy, Database, Shield, User, Mail, Globe, AlertTriangle } from "lucide-react"
 
 export default function DatabasePage() {
   const [activeTab, setActiveTab] = useState("stats")
@@ -44,6 +44,24 @@ export default function DatabasePage() {
       description: "Muestra las filtraciones más recientes",
       icon: Database,
       query: "SELECT email, source, leak_date FROM leaks ORDER BY leak_date DESC LIMIT 10",
+    },
+    {
+      name: "Amenazas recientes",
+      description: "Muestra las amenazas detectadas recientemente",
+      icon: AlertTriangle,
+      query: "SELECT indicator, type, verdict, confidence FROM threat_intelligence ORDER BY created_at DESC LIMIT 10",
+    },
+    {
+      name: "Personas con alto riesgo",
+      description: "Muestra personas con puntuación de riesgo alta",
+      icon: User,
+      query: "SELECT name, email, risk_score FROM person_intelligence WHERE risk_score > 70 ORDER BY risk_score DESC",
+    },
+    {
+      name: "IPs con proxy/VPN",
+      description: "Muestra IPs detectadas como proxy o VPN",
+      icon: Shield,
+      query: "SELECT ip_address, country, city FROM ip_intelligence WHERE is_proxy = TRUE OR is_vpn = TRUE",
     },
   ]
 
