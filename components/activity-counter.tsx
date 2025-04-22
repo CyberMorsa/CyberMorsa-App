@@ -3,183 +3,148 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Plus, Minus, RotateCcw, Save } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { useToast } from "@/hooks/use-toast"
+import { Minus, Plus, Save } from "lucide-react"
 
 interface ActivityCounterProps {
-  title: string
-  description: string
-  initialCount: number
-  id: string
-  allowNegative?: boolean
+  title?: string
+  description?: string
+  initialValue?: number
+  onSave?: (value: number, title: string, description: string) => void
+  id?: string
 }
 
 export function ActivityCounter({
-  title,
-  description,
-  initialCount = 0,
+  title = "Contador de Actividad",
+  description = "Haz clic para añadir una descripción",
+  initialValue = 0,
+  onSave,
   id,
-  allowNegative = false,
 }: ActivityCounterProps) {
-  const [count, setCount] = useState(initialCount)
-  const [localTitle, setLocalTitle] = useState(title)
-  const [localDescription, setLocalDescription] = useState(description)
-  const [isEditingTitle, setIsEditingTitle] = useState(false)
-  const [isEditingDescription, setIsEditingDescription] = useState(false)
+  const [count, setCount] = useState(initialValue)
+  const [editableTitle, setEditableTitle] = useState(title)
+  const [editableDescription, setEditableDescription] = useState(description)
+  const [isTitleEditing, setIsTitleEditing] = useState(false)
+  const [isDescriptionEditing, setIsDescriptionEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
-  const { toast } = useToast()
 
-  // Cargar el contador desde localStorage al montar el componente
   useEffect(() => {
-    const savedData = localStorage.getItem(`activity-counter-${id}`)
-    if (savedData) {
-      try {
-        const data = JSON.parse(savedData)
-        setCount(data.count)
-        setLocalTitle(data.title)
-        setLocalDescription(data.description)
-      } catch (error) {
-        console.error("Error al cargar datos:", error)
-      }
-    }
-  }, [id])
+    setCount(initialValue)
+  }, [initialValue])
 
-  // Guardar el contador en localStorage y base de datos cuando cambia
-  useEffect(() => {
-    const data = {
-      count,
-      title: localTitle,
-      description: localDescription,
-    }
-
-    localStorage.setItem(`activity-counter-${id}`, JSON.stringify(data))
-
-    // Guardar en la base de datos (simulado)
-    const saveToDatabase = async () => {
-      try {
-        setIsSaving(true)
-        // Simulación de guardado
-        await new Promise((resolve) => setTimeout(resolve, 500))
-        setIsSaving(false)
-      } catch (error) {
-        console.error("Error al guardar en la base de datos:", error)
-        setIsSaving(false)
-      }
-    }
-
-    const debounce = setTimeout(() => {
-      saveToDatabase()
-    }, 1000)
-
-    return () => clearTimeout(debounce)
-  }, [count, localTitle, localDescription, id])
-
-  const increment = () => setCount(count + 1)
+  const increment = () => {
+    setCount((prev) => prev + 1)
+  }
 
   const decrement = () => {
-    if (count > 0 || allowNegative) {
-      setCount(count - 1)
+    setCount((prev) => (prev > 0 ? prev - 1 : 0))
+  }
+
+  const handleSave = async () => {
+    if (onSave) {
+      setIsSaving(true)
+      try {
+        await onSave(count, editableTitle, editableDescription)
+      } catch (error) {
+        console.error("Error al guardar:", error)
+      } finally {
+        setIsSaving(false)
+      }
     }
   }
 
-  const reset = () => {
-    if (confirm("¿Estás seguro de que quieres reiniciar el contador a cero?")) {
-      setCount(0)
+  const handleTitleClick = () => {
+    if (title === "Haz clic para añadir un título" || !title) {
+      setIsTitleEditing(true)
     }
   }
 
-  const saveManually = () => {
-    toast({
-      title: "Guardado",
-      description: "Los datos se han guardado correctamente",
-    })
+  const handleDescriptionClick = () => {
+    if (description === "Haz clic para añadir una descripción" || !description) {
+      setIsDescriptionEditing(true)
+    }
   }
 
   return (
-    <Card className="bg-gray-800 border-gray-700">
-      <CardHeader>
-        {isEditingTitle ? (
+    <Card className="bg-gray-800 border-gray-700 h-full">
+      <CardHeader className="pb-2">
+        {isTitleEditing ? (
           <Input
-            value={localTitle}
-            onChange={(e) => setLocalTitle(e.target.value)}
-            onBlur={() => setIsEditingTitle(false)}
-            onKeyDown={(e) => e.key === "Enter" && setIsEditingTitle(false)}
-            className="text-xl font-bold bg-gray-700 border-gray-600 text-white"
+            value={editableTitle}
+            onChange={(e) => setEditableTitle(e.target.value)}
+            onBlur={() => setIsTitleEditing(false)}
+            onKeyDown={(e) => e.key === "Enter" && setIsTitleEditing(false)}
             autoFocus
+            className="bg-gray-700 border-gray-600 text-white"
           />
         ) : (
           <CardTitle
-            className="text-xl font-bold text-white cursor-pointer hover:text-blue-400"
-            onClick={() => setIsEditingTitle(true)}
+            className="text-white cursor-pointer hover:text-blue-400 transition-colors"
+            onClick={handleTitleClick}
           >
-            {localTitle || "Haz clic para añadir un título"}
+            {editableTitle || "Haz clic para añadir un título"}
           </CardTitle>
         )}
-
-        {isEditingDescription ? (
-          <Textarea
-            value={localDescription}
-            onChange={(e) => setLocalDescription(e.target.value)}
-            onBlur={() => setIsEditingDescription(false)}
-            className="text-sm bg-gray-700 border-gray-600 text-gray-300"
+        {isDescriptionEditing ? (
+          <Input
+            value={editableDescription}
+            onChange={(e) => setEditableDescription(e.target.value)}
+            onBlur={() => setIsDescriptionEditing(false)}
+            onKeyDown={(e) => e.key === "Enter" && setIsDescriptionEditing(false)}
             autoFocus
+            className="bg-gray-700 border-gray-600 text-white text-sm"
           />
         ) : (
           <p
-            className="text-sm text-gray-400 cursor-pointer hover:text-blue-400"
-            onClick={() => setIsEditingDescription(true)}
+            className="text-gray-400 cursor-pointer hover:text-blue-400 transition-colors text-sm"
+            onClick={handleDescriptionClick}
           >
-            {localDescription || "Haz clic para añadir una descripción"}
+            {editableDescription || "Haz clic para añadir una descripción"}
           </p>
         )}
       </CardHeader>
-      <CardContent className="p-6">
-        <div className="space-y-6">
-          <div className="flex flex-col items-center justify-center">
-            <div className="text-6xl font-bold text-white mb-6">{count}</div>
-            <div className="flex gap-4">
-              <Button
-                onClick={decrement}
-                size="lg"
-                className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 text-lg flex items-center"
-                disabled={!allowNegative && count <= 0}
-              >
-                <Minus className="mr-2 h-5 w-5" />
-                <span>Restar</span>
-              </Button>
-              <Button
-                onClick={increment}
-                size="lg"
-                className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-lg flex items-center"
-              >
-                <Plus className="mr-2 h-5 w-5" />
-                <span>Sumar</span>
-              </Button>
-              <Button
-                onClick={reset}
-                size="lg"
-                variant="outline"
-                className="border-gray-600 text-white hover:bg-gray-700 px-6 py-3 text-lg flex items-center"
-              >
-                <RotateCcw className="mr-2 h-5 w-5" />
-                <span>Reiniciar</span>
-              </Button>
-            </div>
-            <div className="mt-4 flex items-center">
-              <Button
-                onClick={saveManually}
-                variant="outline"
-                className="border-gray-600 text-white hover:bg-gray-700"
-                disabled={isSaving}
-              >
-                <Save className="mr-2 h-4 w-4" />
-                <span>{isSaving ? "Guardando..." : "Guardar"}</span>
-              </Button>
-              {isSaving && <span className="ml-2 text-sm text-gray-400">Guardando cambios...</span>}
-            </div>
+      <CardContent>
+        <div className="flex flex-col items-center">
+          <div className="text-6xl font-bold text-white mb-6">{count}</div>
+          <div className="flex gap-2 mb-4">
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={decrement}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              <Minus className="h-4 w-4 mr-1" />
+              Restar
+            </Button>
+            <Button
+              variant="default"
+              size="sm"
+              onClick={increment}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              Sumar
+            </Button>
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSave}
+            disabled={isSaving}
+            className="border-gray-600 text-white hover:bg-gray-700 w-full"
+          >
+            {isSaving ? (
+              <>
+                <div className="animate-spin mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+                Guardando...
+              </>
+            ) : (
+              <>
+                <Save className="h-4 w-4 mr-1" />
+                Guardar
+              </>
+            )}
+          </Button>
         </div>
       </CardContent>
     </Card>
