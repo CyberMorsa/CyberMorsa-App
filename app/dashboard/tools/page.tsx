@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { ChevronLeft, ChevronRight, Calculator, Activity } from "lucide-react"
 import { EnhancedCounter } from "@/components/enhanced-counter"
 import { SumCalculator } from "@/components/sum-calculator"
@@ -58,40 +58,46 @@ export default function ToolsPage() {
       </div>
 
       {/* Carrusel de aplicaciones */}
-      <div className="flex items-center justify-between mb-6">
-        <Button onClick={goToPrevTool} size="lg" className="bg-gray-700 hover:bg-gray-600 text-white">
-          <ChevronLeft className="h-6 w-6 mr-2" />
-          Anterior
-        </Button>
+      <Card className="bg-gray-800 border-gray-700 p-4">
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <Button onClick={goToPrevTool} size="lg" className="bg-gray-700 hover:bg-gray-600 text-white">
+              <ChevronLeft className="h-6 w-6 mr-2" />
+              <span className="hidden sm:inline">Anterior</span>
+            </Button>
 
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-white">{currentTool.name}</h2>
-          <p className="text-gray-400">{currentTool.description}</p>
-        </div>
+            <div className="text-center">
+              <CardTitle className="text-2xl font-bold text-white">{currentTool.name}</CardTitle>
+              <CardDescription className="text-gray-400">{currentTool.description}</CardDescription>
+            </div>
 
-        <Button onClick={goToNextTool} size="lg" className="bg-gray-700 hover:bg-gray-600 text-white">
-          Siguiente
-          <ChevronRight className="h-6 w-6 ml-2" />
-        </Button>
-      </div>
+            <Button onClick={goToNextTool} size="lg" className="bg-gray-700 hover:bg-gray-600 text-white">
+              <span className="hidden sm:inline">Siguiente</span>
+              <ChevronRight className="h-6 w-6 ml-2" />
+            </Button>
+          </div>
+        </CardHeader>
 
-      {/* Indicadores de página */}
-      <div className="flex justify-center gap-2 mb-6">
-        {tools.map((tool, index) => (
-          <Button
-            key={tool.id}
-            onClick={() => goToTool(index)}
-            variant={currentToolIndex === index ? "default" : "outline"}
-            className={
-              currentToolIndex === index
-                ? "bg-blue-600 hover:bg-blue-700 h-10 w-10 p-0"
-                : "border-gray-700 text-white hover:bg-gray-700 h-10 w-10 p-0"
-            }
-          >
-            {index + 1}
-          </Button>
-        ))}
-      </div>
+        {/* Indicadores de página */}
+        <CardContent className="pt-4 pb-0">
+          <div className="flex justify-center gap-2 mb-6">
+            {tools.map((tool, index) => (
+              <Button
+                key={tool.id}
+                onClick={() => goToTool(index)}
+                variant={currentToolIndex === index ? "default" : "outline"}
+                className={
+                  currentToolIndex === index
+                    ? "bg-blue-600 hover:bg-blue-700 h-10 w-10 p-0"
+                    : "border-gray-700 text-white hover:bg-gray-700 h-10 w-10 p-0"
+                }
+              >
+                {index + 1}
+              </Button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Contenedor de la herramienta actual */}
       <Card className="bg-gray-800 border-gray-700 p-6">

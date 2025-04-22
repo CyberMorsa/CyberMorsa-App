@@ -62,19 +62,6 @@ export function ActivityCounter({
         setIsSaving(true)
         // Simulación de guardado
         await new Promise((resolve) => setTimeout(resolve, 500))
-
-        // Aquí iría la llamada real a la API
-        // await fetch("/api/activities/save", {
-        //   method: "POST",
-        //   headers: {
-        //     "Content-Type": "application/json",
-        //   },
-        //   body: JSON.stringify({
-        //     id,
-        //     ...data,
-        //   }),
-        // })
-
         setIsSaving(false)
       } catch (error) {
         console.error("Error al guardar en la base de datos:", error)

@@ -160,14 +160,14 @@ export function DashboardNav() {
               <Button
                 variant="ghost"
                 className={cn(
-                  "w-full justify-between hover:bg-gray-700 hover:text-white",
-                  isActive(item.href) ? "bg-gray-700 text-white" : "text-gray-400",
+                  "w-full justify-between hover:bg-gray-700 hover:text-white text-base font-medium py-2.5",
+                  isActive(item.href) ? "bg-gray-700 text-white" : "text-gray-300",
                 )}
                 onClick={() => toggleSubmenu(item.href)}
               >
                 <div className="flex items-center">
-                  <item.icon className="mr-2 h-5 w-5" />
-                  {item.title}
+                  <item.icon className="mr-3 h-5 w-5" />
+                  <span>{item.title}</span>
                   {item.badge && (
                     <Badge className={cn("ml-2 text-xs", item.badgeColor || "bg-blue-500")}>{item.badge}</Badge>
                   )}
@@ -181,14 +181,14 @@ export function DashboardNav() {
                       key={subItem.href}
                       href={subItem.href}
                       className={cn(
-                        "flex items-center text-sm px-3 py-2 rounded-md hover:bg-gray-700 hover:text-white",
+                        "flex items-center text-sm px-3 py-2.5 rounded-md hover:bg-gray-700 hover:text-white",
                         pathname === subItem.href || pathname.includes(subItem.href.split("?")[0])
-                          ? "bg-gray-700 text-white"
-                          : "text-gray-400",
+                          ? "bg-gray-700 text-white font-medium"
+                          : "text-gray-300",
                       )}
                     >
-                      <subItem.icon className="mr-2 h-4 w-4" />
-                      {subItem.title}
+                      <subItem.icon className="mr-3 h-4 w-4" />
+                      <span>{subItem.title}</span>
                       {subItem.badge && (
                         <Badge className={cn("ml-2 text-xs", subItem.badgeColor || "bg-blue-500")}>
                           {subItem.badge}
@@ -203,13 +203,13 @@ export function DashboardNav() {
             <Link
               href={item.href}
               className={cn(
-                "flex items-center justify-between px-3 py-2 rounded-md hover:bg-gray-700 hover:text-white",
-                isActive(item.href) ? "bg-gray-700 text-white" : "text-gray-400",
+                "flex items-center justify-between px-3 py-2.5 rounded-md hover:bg-gray-700 hover:text-white text-base font-medium",
+                isActive(item.href) ? "bg-gray-700 text-white" : "text-gray-300",
               )}
             >
               <div className="flex items-center">
-                <item.icon className="mr-2 h-5 w-5" />
-                {item.title}
+                <item.icon className="mr-3 h-5 w-5" />
+                <span>{item.title}</span>
               </div>
               {item.badge && <Badge className={cn("text-xs", item.badgeColor || "bg-blue-500")}>{item.badge}</Badge>}
             </Link>
