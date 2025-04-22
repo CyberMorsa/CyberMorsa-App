@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Shield, Menu, X, LogOut, Loader2 } from "lucide-react"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
+import { useToast } from "@/components/ui/use-toast"
 
 const navItems = [
   { name: "Dashboard", href: "/dashboard" },
@@ -22,10 +23,24 @@ export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [loggingOut, setLoggingOut] = useState(false)
   const { data: session } = useSession()
+  const { toast } = useToast()
 
   const handleLogout = async () => {
     setLoggingOut(true)
-    await signOut({ redirect: true, callbackUrl: "/" })
+    try {
+      await signOut({ redirect: true, callbackUrl: "/" })
+      toast({
+        title: "Sesión cerrada",
+        description: "Has cerrado sesión correctamente.",
+      })
+    } catch (error) {
+      setLoggingOut(false)
+      toast({
+        title: "Error",
+        description: "Hubo un problema al cerrar sesión.",
+        variant: "destructive",
+      })
+    }
   }
 
   return (

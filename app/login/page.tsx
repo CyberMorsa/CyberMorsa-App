@@ -10,23 +10,27 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Shield, Loader2 } from "lucide-react"
+import { useToast } from "@/components/ui/use-toast"
 
 export default function LoginPage() {
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { toast } = useToast()
 
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard"
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError("")
 
     if (!username || !password) {
-      setError("Por favor, ingresa tu nombre de usuario y contraseña.")
+      toast({
+        title: "Error",
+        description: "Por favor, ingresa tu nombre de usuario y contraseña.",
+        variant: "destructive",
+      })
       return
     }
 
@@ -40,15 +44,29 @@ export default function LoginPage() {
       })
 
       if (result?.error) {
-        setError("Credenciales inválidas. Por favor, intenta de nuevo.")
+        toast({
+          title: "Error",
+          description: "Credenciales inválidas. Por favor, intenta de nuevo.",
+          variant: "destructive",
+        })
         setLoading(false)
         return
       }
 
+      toast({
+        title: "Inicio de sesión exitoso",
+        description: `Bienvenido, ${username}!`,
+      })
+
       router.push(callbackUrl)
       router.refresh()
     } catch (error) {
-      setError("Ocurrió un error al iniciar sesión. Por favor, intenta de nuevo.")
+      toast({
+        title: "Error",
+        description: "Ocurrió un error al iniciar sesión. Por favor, intenta de nuevo.",
+        variant: "destructive",
+      })
+    } finally {
       setLoading(false)
     }
   }
@@ -69,7 +87,6 @@ export default function LoginPage() {
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
-            {error && <div className="p-3 text-sm bg-destructive/10 text-destructive rounded-md">{error}</div>}
             <div className="space-y-2">
               <Label htmlFor="username">Nombre de usuario</Label>
               <Input

@@ -2,13 +2,13 @@ import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 import { getToken } from "next-auth/jwt"
 
-// Rutas que no requieren autenticación
+// Routes that don't require authentication
 const publicRoutes = ["/", "/login"]
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Si es una ruta pública o un recurso estático, permitir acceso
+  // Allow access to public routes or static resources
   if (
     publicRoutes.includes(pathname) ||
     pathname.startsWith("/_next") ||
@@ -18,16 +18,16 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // Verificar si existe el token de autenticación
+  // Check for authentication token
   const token = await getToken({
     req: request,
     secret: process.env.NEXTAUTH_SECRET,
   })
 
-  // Si no hay token, redirigir al login
+  // If no token, redirect to login
   if (!token) {
     const url = new URL("/login", request.url)
-    url.searchParams.set("callbackUrl", encodeURI(pathname))
+    url.searchParams.set("callbackUrl", pathname)
     return NextResponse.redirect(url)
   }
 

@@ -90,8 +90,7 @@
     "drizzle-orm": "latest",
     "drizzle-kit": "latest",
     "dotenv": "latest",
-    "next-auth": "latest",
-    "jsonwebtoken": "latest"
+    "next-auth": "latest"
   },
   "devDependencies": {
     "@types/node": "^22",

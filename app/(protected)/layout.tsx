@@ -1,15 +1,11 @@
-import type React from "react"
+import type { ReactNode } from "react"
 import { redirect } from "next/navigation"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { Navbar } from "@/components/navbar"
 import { Toaster } from "@/components/ui/toaster"
 
-export default async function ProtectedLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default async function ProtectedLayout({ children }: { children: ReactNode }) {
   const session = await getServerSession(authOptions)
 
   if (!session) {
